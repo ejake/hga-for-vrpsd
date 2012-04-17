@@ -1,4 +1,4 @@
-classdef InstanceVrpsd
+classdef InstanceVrpsd %< handle
     %InstanceVrpsd Summary an single VRPSD instance
     %   Detailed explanation goes here
     
