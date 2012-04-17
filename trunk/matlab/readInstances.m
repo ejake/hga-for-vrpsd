@@ -1,4 +1,5 @@
 %% Read all files an run everyone
+clear all;
 %Windows:
 %path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
 %path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
@@ -39,6 +40,7 @@ timeSpent = toc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Read only one instance
+clear all;
 %Windows:
 %fid=fopen('D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\i_5r1.dat', 'rt');
 %Linux:
@@ -75,7 +77,7 @@ timeSpent = toc;
 
 %% Run rollout algorithm
 tau = [0 1 2 3 4 5 0];
-tic;
-state = [0, instance.Q, -99, -99, -99, -99 , -99];
-rapolicy = rollout( tau, instance, state );
-timeSpent = toc;
+%tic;
+x0 = State(instance.n, instance.Q);
+rapolicy = rollout( tau, instance, x0 );
+%timeSpent = toc;

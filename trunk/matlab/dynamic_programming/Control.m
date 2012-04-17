@@ -15,7 +15,7 @@ classdef Control
             else
                 %Error: the customer 'value' not exist in iniTau
                 err = MException('Control:OutOfRange', ...
-                    'replenishment decision is not a valide value, a in {0,1}');
+                    'replenishment decision is not a available value, a in {0,1}');
                 throw(err)
             end
         end
