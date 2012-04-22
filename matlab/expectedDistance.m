@@ -5,9 +5,10 @@ function [ E ] = expectedDistance ( instance, tau, l, qi)
 %instance.d: [n+1,n+1] distance matrix
 
 if l == instance.n %tau(instance.n) %n is the last costumer in the tour (instance.n assume that tau is sorted, tau(instance.n+1) is the last customer at tau
-	E = instance.d(tau(l+1)+1,1); %d(n,0)
+	E = instance.d(tau(l+1)+1,1); %d(n,0) %Review tau(l+1) or tau(l)
 else
 	if l == 0
+        %E = instance.d(tau(l+1)+1,1) + expectedDistance ( instance, tau, l+1, qi);
 		E = expectedDistance ( instance, tau, l+1, qi);
     else
         %---
