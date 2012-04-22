@@ -13,7 +13,7 @@ else
     else
         %---
         auxE0 = instance.d(tau(l+1)+1, tau(l)+1);%d(i+1,i)
-        for j=0:qi
+        for j=0:min( qi, instance.Cust(tau(l+1)).PD(2) )
             auxE0 = auxE0 + expectedDistance(instance,tau,l+1,qi-j)*...
                 probDemand (j, tau(l+1), instance);%1/(b-a+1)
         end
@@ -29,11 +29,7 @@ else
                 probDemand (j, tau(l+1), instance);%1/(b-a+1)
         end
         %---
-        if(auxE0 >= auxE1)
-            E = auxE1;
-        else
-            E = auxE0;
-        end
+        E = min(auxE1, auxE0);
     end	
 end
 
