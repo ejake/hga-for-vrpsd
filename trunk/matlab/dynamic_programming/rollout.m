@@ -22,8 +22,8 @@ function [ pi ] = rollout( tau0, instance, state )
                 Elength = expectedDistance(instance, tau, 0, instance.Q);
                 a = 0;
             else% l_n | n > 1
-                J0 = cost2goJ(instance, tau, l, sNu(j), x.q_l, 0);
-                J1 = cost2goJ(instance, tau, l, sNu(j), x.q_l, 1);
+                J0 = cost2goJ(instance, tau, i, sNu(j), x.q_l, 0);
+                J1 = cost2goJ(instance, tau, i, sNu(j), x.q_l, 1);
                 [Elength a] = min([J0 J1]);
                 a = a - 1;
             end
@@ -41,7 +41,7 @@ function [ pi ] = rollout( tau0, instance, state )
                 end
             end
             %tau = permuteTauElement( tau, sNu(j) , j);
-            tau = shiftTauElement( tau );  
+            tau = shiftTauElement( tau, i );  
         end
         
         % --- General case including l = 0
@@ -52,8 +52,11 @@ function [ pi ] = rollout( tau0, instance, state )
         %remove minTau(2) of sNu
         if(x.r(l) == 0)
             sNu(sNu == minTau(i+1)) = [];
+            i = i + 1;%Instead of below
         end
-        i = i + 1;
+        %(review cyclic heuristic) 
+        %When sNu is greater than 0 and i+1 is greater than n, then i = 1
+        %i = i + 1;
     end
 end
 
@@ -79,7 +82,7 @@ function [ tau ] = shiftTauElement(iniTau, pl)
         tau = [0 iniTau(3:length(iniTau)-1) iniTau(2) 0];
     else
         if(pl>1 && pl <= length(iniTau)-2)
-            tau = [0 tau2(2:pl) tau2(2+pl:length(tau2)-1) tau2(1+pl) 0];
+            tau = [0 iniTau(2:pl) iniTau(2+pl:length(iniTau)-1) iniTau(1+pl) 0];
         else
             error('error shifting in cyclic heuristic')            
         end 
