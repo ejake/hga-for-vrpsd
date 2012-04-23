@@ -22,8 +22,8 @@ function [ pi ] = rollout( tau0, instance, state )
                 Elength = expectedDistance(instance, tau, 0, instance.Q);
                 a = 0;
             else% l_n | n > 1
-                J0 = cost2goJ(instance, tau, i, sNu(j), x.q_l, 0);
-                J1 = cost2goJ(instance, tau, i, sNu(j), x.q_l, 1);
+                J0 = cost2goJ(instance, tau, i, tau(i+1), x.q_l, 0);%tau(i+1) or sNu(j)?
+                J1 = cost2goJ(instance, tau, i, tau(i+1), x.q_l, 1);%tau(i+1) or sNu(j)?
                 [Elength a] = min([J0 J1]);
                 a = a - 1;
             end
@@ -52,11 +52,15 @@ function [ pi ] = rollout( tau0, instance, state )
         %remove minTau(2) of sNu
         if(x.r(l) == 0)
             sNu(sNu == minTau(i+1)) = [];
-            i = i + 1;%Instead of below
+            %i = i + 1;%Instead of below
         end
-        %(review cyclic heuristic) 
-        %When sNu is greater than 0 and i+1 is greater than n, then i = 1
-        %i = i + 1;
+        %(review cyclic heuristic)
+        %When sNu is greater than 0 and i+1 is greater than n, then i = 1        
+        if(i == instance.n)
+            %i = 1;
+            return %Exit of RA, policy completed
+        end
+        i = i + 1;
     end
 end
 
