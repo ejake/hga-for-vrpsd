@@ -1,4 +1,4 @@
-function [ J ] = cost2goJ( instance, tau, l, m, q_l, replanishment )
+function [ J ] = cost2goBackwardJ( instance, tau, l, m, q_l, replanishment )
 %replanishment: 0 directly, 1 replanishment
     
     if(replanishment == 0)
