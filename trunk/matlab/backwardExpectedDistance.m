@@ -1,4 +1,16 @@
-function [ E ] = backwardExpectedDistance( instance, tau, l, qi, J )
+function [ Elen ] = backwardExpectedDistance( instance, tau, l, ql )
+J= zeros(instance.n + 1, instance.Q +1);
+for i=l:instance.n
+    for j=0:ql
+        Elen = backExJ(instance, tau, instance.n-i, ql-j, J);
+        J(instance.n-i+1,ql-j+1) = Elen;
+    end
+    %J = min(sts(n-l+1,:));
+end
+
+end
+
+function [ E ] = backExJ( instance, tau, l, qi, J )
 %BackwardExpectedDistance Expected distance of an priori solution (base
 %sequence)
 %   The expected distance is assesing using a backward method

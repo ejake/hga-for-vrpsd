@@ -151,20 +151,11 @@ expectd = expectedDistance(instance, tau, 0, instance.Q);
 timeSpent = toc;
 
 %% Run backward expected distance
-%tau = [0 1:n 0];
+tau = [0 1:n 0];
 %tau = [1:n 0];
-tau = [0 4 5 2 3 1 0];
+%tau = [0 4 5 2 3 1 0];
 tic;
-ql = instance.Q;
-expectd2 = 0;
-J= zeros(n + 1, instance.Q +1);
-for l=0:n
-    for j=0:ql
-        expectd2 = backwardExpectedDistance(instance, tau, n-l, ql-j, J);
-        J(n-l+1,ql-j+1) = expectd2;
-    end
-    %J = min(sts(n-l+1,:));
-end
+expectd2 = backwardExpectedDistance(instance, tau, 0, instance.Q);
 timeSpent = toc;
 %% Run rollout algorithm
 tau = [0 1:n 0];
