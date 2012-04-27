@@ -1,16 +1,12 @@
 function [ J ] = cost2goBackwardJ( instance, tau, l, m, q_l, replanishment )
 %replanishment: 0 directly, 1 replanishment
-    
+    Jb= zeros(instance.n + 1, instance.Q +1);
     if(replanishment == 0)
          %Compute J0            
         J = instance.d(tau(l)+1, m+1);
         for k=0 : q_l
-            p = probDemand(k, m, instance);
-            if(l~=instance.n)
-                J = J + p * expectedDistance(instance, tau, l+1, q_l-k); %Review l+1 instead of l because already is taken the replanishment decision
-            else
-                J = J + p * expectedDistance(instance, tau, l, q_l-k);
-            end            
+            p = probDemand(k, m, instance);            
+            J = J + p * backwardExpectedDistance(instance, tau, n-l, ql-k, Jb);
         end
         for k=q_l+1 : instance.Cust(m).PD(2)
             p = probDemand(k, m, instance);
