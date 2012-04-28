@@ -25,7 +25,7 @@ classdef InstanceVrpsd %< handle
             obj.n = numCustomers;
             obj.f = factorF;
             obj.meanDemand = sum((DemandsPD(:,1)+ DemandsPD(:,2))/2)/obj.n;
-            obj.Q = (obj.meanDemand*obj.n)/(1+obj.f);
+            obj.Q = round((obj.meanDemand*obj.n)/(1+obj.f));
             obj.veh = Vehicle(obj.Q,0,obj.Q);
             obj.DemPD = DemandsPD;
             obj.LL = Locations;
