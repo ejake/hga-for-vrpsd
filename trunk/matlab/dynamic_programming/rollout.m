@@ -19,11 +19,11 @@ function [ pi ] = rollout( tau0, instance, state )
         tau = minTau;
         for j=1 : length(sNu)
             if( i == 1 )% l_1
-                Elength = expectedDistance(instance, tau, 0, instance.Q);
+                Elength = backwardExpectedDistance(instance, tau, 0, instance.Q);
                 a = 0;
             else% l_n | n > 1
-                J0 = cost2goJ(instance, tau, i, tau(i+1), x.q_l, 0);%tau(i+1) or sNu(j)?
-                J1 = cost2goJ(instance, tau, i, tau(i+1), x.q_l, 1);%tau(i+1) or sNu(j)?
+                J0 = cost2goBackwardJ(instance, tau, i, tau(i+1), x.q_l, 0);%tau(i+1) or sNu(j)?
+                J1 = cost2goBackwardJ(instance, tau, i, tau(i+1), x.q_l, 1);%tau(i+1) or sNu(j)?
                 [Elength a] = min([J0 J1]);
                 a = a - 1;
             end
