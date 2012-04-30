@@ -86,10 +86,10 @@ fclose(oFile);
 clear all;
 % -- Create output file
 %outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
-outputPath = '/media/DATA_/Documents/Seminario\de\Investigacion/VRP/Outcomes/';
+outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
 outputFile = 'ra_outcome.csv';
 outputFullPath = [outputPath outputFile];
-oFile = fopen(outputFullPath, 'a');
+oFile = fopen(outputFullPath, 'w');
 currentTime = clock;
 fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
 fprintf(oFile,'instance;n;time;policy_m;policy_a;time_expected_distance;expected_distance;avg_travel_distance_tour;tour_travel_distance_sim_tou;avg_travel_distance_simulate_policy;tour_travel_distance_sim_policy\r\n');
@@ -101,7 +101,7 @@ fprintf(oFile,'instance;n;time;policy_m;policy_a;time_expected_distance;expected
 %path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
 %path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
 %Linux:
-path_wildchar = '/media/DATA_/Documents/Seminario\de\Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
+path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
 path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
 listing = dir(path_wildchar);
 for i=1:length(listing)
@@ -169,23 +169,23 @@ for i=1:length(listing)
     fprintf(oFile, '%s;',listing(i).name);
     fprintf(oFile, '%10.2f;',timeSpent);
     for k=1: length(policy_m)
-        fprintf(oFile, ' %i',policy_m);
+        fprintf(oFile, ' %i',policy_m(k));
     end
     fprintf(oFile, ';');
     for k=1: length(policy_a)
-        fprintf(oFile, ' %i',policy_a);
+        fprintf(oFile, ' %i',policy_a(k));
     end
     fprintf(oFile, ';');
     fprintf(oFile, ' %10.2f;',timeExSpent);
     fprintf(oFile, ' %6.6f;',expectd);
     fprintf(oFile, ' %6.6f;',simCost0); 
     for k=1: length(simTour0)
-        fprintf(oFile, ' %i',simTour0);
+        fprintf(oFile, ' %i',simTour0(k));
     end
     fprintf(oFile, ';');
     fprintf(oFile, ' %6.6f;',simCost1); 
     for k=1: length(simTour1)
-        fprintf(oFile, ' %i',simTour1);
+        fprintf(oFile, ' %i',simTour1(k));
     end
     fprintf(oFile,'\r\n');
     % ---
