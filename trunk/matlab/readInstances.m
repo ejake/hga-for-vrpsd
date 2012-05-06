@@ -82,6 +82,85 @@ fclose(oFile);
 % ---
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Explore all possible TSP routes (exhaustive algorithm)
+%It section should be used for small instances
+clear all;
+% -- Create output file
+%outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
+outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
+outputFile = 'aped_outcome.csv';
+outputFullPath = [outputPath outputFile];
+oFile = fopen(outputFullPath, 'w');
+currentTime = clock;
+fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
+fprintf(oFile,'instance;n;time;tour;expected_distance_tour\r\n');
+
+% ---
+% -- Specify location of input data (instances) 
+%Windows:
+%path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
+%path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
+%Linux:
+%path_wildchar = '/home/undavid/Documents/MATLAB/VRPSD/test_instance/*.dat';
+%path = '/home/undavid/Documents/MATLAB/VRPSD/test_instance/';
+path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
+path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
+listing = dir(path_wildchar);
+for i=1:length(listing)
+    % -- Read instance file
+    path_file = [path listing(i).name];
+    fid=fopen(path_file, 'r');
+    fn = str2num(fgetl(fid));
+    data = [];
+    for j=1:fn
+        txt = fgetl(fid);
+        data = [data ;str2num(txt)];
+    end
+    fclose(fid);
+    % ---
+    % -- Initialize instance values
+    %Number of customers
+    n = fn;
+    %Demand Probability Distribution for each customer
+    DD=[data(:,4) data(:,5)];
+    %Location for each customers
+    LL=[data(:,2) data(:,3)];
+    %Factor for Q
+    f=1;
+    %load instance object
+    instance = InstanceVrpsd(n, f, DD, LL);
+    disp(listing(i).name);
+    % ---
+    %Exhaustive exploration of expected distance for all tau permutations
+    sub_tau = 1:n;
+    all_perms_tau = perms(sub_tau);
+    disp(size(all_perms_tau,1));
+    for j=1:size(all_perms_tau,1)
+        tau = [0 all_perms_tau(j,:) 0];
+        tic;
+        expectd2 = backwardExpectedDistance(instance, tau, 0, instance.Q);
+        timeSpent = toc;
+        % ---
+    % -- Write results in a output file    
+    fprintf(oFile, '%s;',listing(i).name);
+    fprintf(oFile, '%i;',n);
+    fprintf(oFile, '%10.2f;',timeSpent);
+    for k=1: length(tau)
+        fprintf(oFile, ' %i',tau(k));
+    end
+    fprintf(oFile, ';');
+    fprintf(oFile, ' %10.2f;',timeSpent);
+    fprintf(oFile, ' %6.6f;',expectd2);
+    fprintf(oFile,'\r\n');
+    % ---
+    end    
+    % ---
+end
+% -- Close outputFile
+fclose(oFile);
+% ---
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% Read all files an run RA for each one
 clear all;
 % -- Create output file
@@ -143,15 +222,15 @@ for i=1:length(listing)
     policy_m = zeros(1,length(rapolicy));
     policy_a = zeros(1,length(rapolicy));
     for k=1: length(rapolicy)
-        policy_m = rapolicy(i).m;
-        policy_a = rapolicy(i).a;
+        policy_m(k) = rapolicy(k).m;
+        policy_a(k) = rapolicy(k).a;
     end
     %Expected distance
     eTau = [0 policy_m 0];
     tic % start timer
     expectd = -1;
     if length(eTau) == n+2
-        expectd = expectedDistance(instance, eTau, 0, instance.Q);
+        expectd = backwardExpectedDistance(instance, eTau, 0, instance.Q);
     end
     timeExSpent =toc; % stop timer
     %Simulating tour
@@ -248,4 +327,3 @@ x0 = State(instance.n, instance.Q);
 tic;
 rapolicy = rollout( tau, instance, x0 );
 timeSpent = toc;
-
