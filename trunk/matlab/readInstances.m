@@ -274,6 +274,79 @@ fclose(oFile);
 % ---
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Read all files an run GA for each one
+clear all;
+% -- Create output file
+%outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
+outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
+outputFile = 'ra_outcome.csv';
+outputFullPath = [outputPath outputFile];
+oFile = fopen(outputFullPath, 'w');
+currentTime = clock;
+fprintf(oFile,'Results GA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
+fprintf(oFile,'instance;n;time;tour;expected_distance\r\n');
+%fprintf(oFile, '%10.2f; %i; %i; %10.2f; %6.6f; %6.6f; %i; %6.6f; %i \r\n',timeSpent,policy_m,policy_a,timeExSpent,expectd,simCost0, simTour0, simCost1, simTour1);
+    
+% ---
+% -- Specify location of input data (instances) 
+%Windows:
+%path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
+%path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
+%Linux:
+path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
+path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
+listing = dir(path_wildchar);
+for i=1:length(listing)
+    % -- Read instance file
+    path_file = [path listing(i).name];
+    fid=fopen(path_file, 'r');
+    fn = str2num(fgetl(fid));
+    data = [];
+    for j=1:fn
+        txt = fgetl(fid);
+        data = [data ;str2num(txt)];
+    end
+    fclose(fid);
+    % ---
+    % -- Initialize instance values
+    %Number of customers
+    n = fn;
+    %Demand Probability Distribution for each customer
+    DD=[data(:,4) data(:,5)];
+    %Location for each customers
+    LL=[data(:,2) data(:,3)];
+    %Factor for Q
+    f=1;
+    %load instance object
+    instance = InstanceVrpsd(n, f, DD, LL);
+    % ---
+    % -- Genetic algorithm
+    pop_size =   
+    tic; % start timer
+    [optRoute, expectd] = vrpsd_ga(instance, 10, 10, 1, 1);
+    timeSpent = toc; % stop timer
+    % ---
+    % -- Prepare outcomes data
+    tour = [0 optRoute 0];
+    
+    % ---
+    % -- Write results in a output file    
+    fprintf(oFile, '%s;',listing(i).name);
+    fprintf(oFile, ' %i;',instance.n);
+    fprintf(oFile, '%10.2f;',timeSpent);
+    for k=1: length(optRoute)
+        fprintf(oFile, ' %i',tour(k));
+    end
+    fprintf(oFile, ';');
+    fprintf(oFile, ' %6.6f',expectd);
+    fprintf(oFile,'\r\n');
+    % ---
+end
+% -- Close outputFile
+fclose(oFile);
+% ---
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% Read only one instance
 clear all;
 %Windows:
@@ -327,3 +400,13 @@ x0 = State(instance.n, instance.Q);
 tic;
 rapolicy = rollout( tau, instance, x0 );
 timeSpent = toc;
+%% Run GA
+% -- Genetic algorithm
+iters = 100;
+fp = 2;
+pop_size = instance.n*fp;
+tic; % start timer
+[optRoute, expectd] = vrpsd_ga(instance, pop_size, iters, 0, 1);
+timeSpent = toc; % stop timer
+
+%% Run hybrid GA
