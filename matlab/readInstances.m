@@ -3,12 +3,12 @@ clear all;
 % -- Create output file
 %outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
 outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
-outputFile = 'bed_outcome.csv';
+outputFile = 'bedcyclic_outcome.csv';
 outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
 fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
-fprintf(oFile,'instance;n;time;tour;expected_distance_tour;avg_travel_distance_tour;avg_nodes_visited\r\n');
+fprintf(oFile,'instance;n;time;tour;expected_distance_tour;avg_travel_distance_tour;var_trael_distance;avg_nodes_visited\r\n');
     
 % ---
 % -- Specify location of input data (instances) 
@@ -51,16 +51,17 @@ for i=1:length(listing)
     % ---
     % -- Simulating tour distance
     pi = [];
-    for k=1: (length(tau)-1)
+    for k=1: (length(tau)-2)
         pi = [pi Control(tau(k+1),0)];
     end
     num_ite = 1000;
     rsim = zeros(1,num_ite);
-    for j=1:nume_ite
-        [c trip] = simTripDistance(pi,instance,0);
+    for j=1:num_ite
+        [c trip] = simCyclicTripDistance(pi,instance,0);
         rsim(j) = c;
     end
     avg = mean(rsim);
+    variance = var(rsim);
     stg_trip = length(trip);
     % ---
     % -- Write results in a output file
@@ -73,6 +74,7 @@ for i=1:length(listing)
     fprintf(oFile, ';');
     fprintf(oFile, ' %6.6f;',expectd2);
     fprintf(oFile, ' %6.6f;',avg);
+    fprintf(oFile, ' %6.6f;',variance);
     fprintf(oFile, ' %i;',stg_trip);
     fprintf(oFile,'\r\n');
     % ---

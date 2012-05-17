@@ -14,13 +14,14 @@ function [ cost tour ] = simTripDistance( policy, instance, typeSim )
 %   Output:
 %       cost: (Scalar) total cost of the final tour
 %       tour: (n+?) real tour with depot returns (? depot returns)
+typeSim = logical(typeSim);
 l = 0;
 cost = 0;
 q = instance.Q;
-tour = [ l ];
+tour = l;
 for i=1:length(policy)   
     %Earlier replanishment
-    if typeSim == 1 && policy(i).a == 1
+    if typeSim && policy(i).a == 1
         q = instance.Q;
         if l ~= 0 % if current position l not is the depot
             cost = cost + instance.d(l+1,0+1); %return to depot
