@@ -16,6 +16,7 @@ classdef Customer
         function obj = getDemand(obj)
             if(length(obj.PD)==2)
                 obj.D = randi(obj.PD,1,1);
+                %obj.D = max(obj.PD); worst case
             else
                 error('uniform probability distribution wrong')
             end
