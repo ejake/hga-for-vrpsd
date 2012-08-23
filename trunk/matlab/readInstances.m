@@ -8,7 +8,7 @@ outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
 fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
-fprintf(oFile,'instance;n;time;tour;expected_distance_tour;avg_travel_distance_tour;var_trael_distance;avg_nodes_visited\r\n');
+fprintf(oFile,'instance;n;time;tour;expected_distance_tour;avg_travel_distance_tour;var_travel_distance;avg_nodes_visited\r\n');
     
 % ---
 % -- Specify location of input data (instances) 
@@ -354,7 +354,8 @@ clear all;
 %Windows:
 %fid=fopen('D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\i_5r1.dat', 'rt');
 %Linux:
-fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_5r1.dat', 'rt');
+fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
+%fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_5r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_8r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_20r2.dat', 'rt');
 fn = str2num(fgetl(fid));
@@ -412,3 +413,30 @@ tic; % start timer
 timeSpent = toc; % stop timer
 
 %% Run hybrid GA
+
+%% Simulation
+% Demand distribution
+a = avgDemand();
+x = 7:17;
+plot(a,x);
+p = a./243;
+plot(x,p);
+
+%% -- Simulating tour distance
+
+num_ite = 1000;
+rsim = zeros(1, num_ite);
+instance.Q = 7;
+
+pi = [];
+for k=1: instance.n
+    pi = [pi Control(k,0)];
+end
+
+for j=1:num_ite
+    [c trip] = simCyclicTripDistance(pi,instance,0);
+    rsim(j) = c;
+end
+avg = mean(rsim);
+variance = var(rsim);
+stg_trip = length(trip);
