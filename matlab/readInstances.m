@@ -1,3 +1,92 @@
+%% Read all files an run exact expected distance (only for small instances)
+clear all;
+% -- Create output file
+%outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
+%outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
+outputPath = '/home/lisi/Documents/vrpsd/outcomes/';
+outputFile = 'exdist_cyclic_outcome.csv';
+outputFullPath = [outputPath outputFile];
+oFile = fopen(outputFullPath, 'a');
+currentTime = clock;
+fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
+fprintf(oFile,'instance;n;time;tour;Q;average distance;total demand;frecuency;distance\r\n');
+% ---
+% -- Specify location of input data (instances) 
+%Windows:
+%path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
+%path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
+%Linux:
+path_wildchar = '/home/lisi/Documents/vrpsd/instances/*.dat';
+path = '/home/lisi/Documents/vrpsd/instances/';
+%path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
+%path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
+listing = dir(path_wildchar);
+for i=1:length(listing)    
+    % -- Read instance file
+    disp(listing(i).name);
+    path_file = [path listing(i).name];
+    fid=fopen(path_file, 'r');
+    fn = str2num(fgetl(fid));
+    data = [];
+    for j=1:fn
+        txt = fgetl(fid);
+        data = [data ;str2num(txt)];
+    end
+    fclose(fid);
+    % ---
+    % -- Initialize instance values
+    %Number of customers
+    n = fn;
+    %Demand Probability Distribution for each customer
+    DD=[data(:,4) data(:,5)];
+    %Location for each customers
+    LL=[data(:,2) data(:,3)];
+    %Factor for Q
+    f=1;
+    %load instance object
+    instance = InstanceVrpsd(n, f, DD, LL);
+    % ---
+    % Asses expected distance
+    pi = [];
+    for k=1: instance.n
+        pi = [pi Control(k,0)];
+    end    
+    tic;
+    if instance.n == 5
+        [frecD disD] = distanceDistribution5n(pi, instance, 1);
+    end
+    if instance.n == 8
+        [frecD disD] = distanceDistribution8n(pi, instance, 1);
+    end
+    timeSpent = toc;
+    avgDist = sum(frecD.*disD)/sum(frecD);
+    % -- Write results in a output file
+    fprintf(oFile, '%s;',listing(i).name);
+    fprintf(oFile, ' %i',instance.n);
+    fprintf(oFile, '%10.2f;',timeSpent);
+    for k=1: (length(pi))
+        fprintf(oFile, ' %i',pi(k).m);
+    end
+    fprintf(oFile, ';');
+    fprintf(oFile, ' %i;',instance.Q);
+    fprintf(oFile, ' %6.6f;',avgDist);
+    for k=1: (length(frecD))
+        fprintf(oFile, ' %i',frecD(k));
+    end
+    fprintf(oFile, ';');
+    for k=1: (length(disD))
+        fprintf(oFile, ' %i',disD(k));
+    end
+    fprintf(oFile, ';');
+    fprintf(oFile,'\r\n');
+    % ---
+end
+% -- Close outputFile
+fclose(oFile);
+% ---
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %% Read all files an run backward Expected Distance for each one
 clear all;
 % -- Create output file
@@ -323,7 +412,7 @@ for i=1:length(listing)
     instance = InstanceVrpsd(n, f, DD, LL);
     % ---
     % -- Genetic algorithm
-    pop_size =   
+    pop_size = 
     tic; % start timer
     [optRoute, expectd] = vrpsd_ga(instance, 10, 10, 1, 1);
     timeSpent = toc; % stop timer
@@ -440,3 +529,14 @@ end
 avg = mean(rsim);
 variance = var(rsim);
 stg_trip = length(trip);
+
+%% Real expected distance
+
+pi = [];
+for k=1: instance.n
+    pi = [pi Control(k,0)];
+end
+
+[frecD disD] = distanceDistribution5n(pi, instance, 0);
+avgDist = sum(frecD.*disD)/sum(frecD);
+plot(frecD);
