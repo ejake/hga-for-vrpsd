@@ -31,7 +31,7 @@ for t=1: size(ss,1)
 						q = Q;
                         while (sum(inst) ~= 0)
 						
-							if ((q == 0) || (policy(pospol,1) == 1))
+							if ((q == 0) || (policy(pospol,1) == 1))                            
 								dist = dist + sqrt( points(pos,1)^2 +points(pos,2)^2 );
 							    pos = 1;
 							    q = Q;
