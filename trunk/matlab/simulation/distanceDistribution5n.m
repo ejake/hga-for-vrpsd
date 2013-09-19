@@ -31,10 +31,7 @@ function [frecDis, disDis] = distanceDistribution5n(policy, instance, cyclic)
                                 pos = 1;
                                 q = instance.Q;
                             end
-                            nextpospol = pospol + 1;
-                            if (nextpospol > instance.n) 
-                                nextpospol = 1;
-                            end
+                            
                             nextpos = policy(nextpospol).m;
                             dist = dist + instance.d(pos,nextpos);                            
                             if ( q >= inst(nextpos)) 
@@ -49,6 +46,10 @@ function [frecDis, disDis] = distanceDistribution5n(policy, instance, cyclic)
                                 if(cyclic)
                                     pospol = nextpospol; %uncomment if run cyclic tour
                                 end
+                            end
+                            nextpospol = pospol + 1;
+                            if (nextpospol > instance.n) 
+                                nextpospol = 1;
                             end
                         end
                         frecDis(totDem - minDem + 1) = frecDis(totDem - minDem + 1) + 1;
