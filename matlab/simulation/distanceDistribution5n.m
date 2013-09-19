@@ -1,7 +1,7 @@
 function [frecDis, disDis] = distanceDistribution5n(policy, instance, cyclic)
 
     cyclic = logical(cyclic);
-    numDemSum = 0;
+    % numDemSum = 0;
     minDem = 0;
     maxDem = 0;
     for i = 1: instance.n        
@@ -18,7 +18,7 @@ function [frecDis, disDis] = distanceDistribution5n(policy, instance, cyclic)
             for x3 = instance.Cust(3).PD(1):instance.Cust(3).PD(2) % Demand of customer 3
                 for x4 = instance.Cust(4).PD(1):instance.Cust(4).PD(2) % Demand of customer 4
                     for x5 = instance.Cust(5).PD(1):instance.Cust(5).PD(2) % Demand of customer 5
-                        inst = [x1 x2 x3 x4 x5];
+                        inst = [0 x1 x2 x3 x4 x5];% 0 is a dummy value to depot demand
                         totDem = sum(inst);
                         cases = cases +1;
                         pos = 1;
@@ -26,7 +26,7 @@ function [frecDis, disDis] = distanceDistribution5n(policy, instance, cyclic)
                         dist = 0;
                         q = instance.Q;
                         while (sum(inst) ~= 0)%asses distance
-                            if ((q == 0) || (policy(pospol).a == 1))
+                            if ((q == 0) || (policy(pospol).a == 1))%Proactive restocking when q is equal to 0
                                 dist = dist + instance.d(1,pos+1);
                                 pos = 1;
                                 q = instance.Q;
