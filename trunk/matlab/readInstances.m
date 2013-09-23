@@ -537,7 +537,7 @@ for k=1: instance.n
     pi = [pi Control(k,0)];
 end
 
-[frecD disD] = distanceDistribution5n(pi, instance, 0);
+[frecD disD allDis] = distanceDistribution5n(pi, instance, 0);
 avgDist = sum(frecD.*disD)/sum(frecD);
 plot(frecD);
 disp('Real expected distance');
