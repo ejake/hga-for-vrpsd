@@ -541,7 +541,8 @@ end
 avgDist = sum(frecD.*disD)/sum(frecD);
 plot(frecD);
 disp('Real expected distance');
-disp(avgDist);
+disp(mean(allDis));
+%disp(avgDist);
 
 %% Review real backward expected distance
 J= zeros(instance.n + 1, instance.Q +1);
