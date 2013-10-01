@@ -540,6 +540,7 @@ end
 [frecD disD allDis] = distanceDistribution5n(pi, instance, 0);
 avgDist = sum(frecD.*disD)/sum(frecD);
 plot(frecD);
+hist(allDis);
 disp('Real expected distance');
 disp(mean(allDis));
 %disp(avgDist);
@@ -549,31 +550,44 @@ J= zeros(instance.n + 1, instance.Q +1);
 J(6,:) = instance.d(5+1,1);%d(n,0) q_l is irrelevant
 
 %Demand of customer 5
-J(5,5:7) = instance.d(4+1,4+2)
-J(5,4) = (instance.d(4+1,4+2)+2*instance.d(1,4+2))*1/3 + instance.d(4+1,4+2)*(2/3)
-J(5,3) = (instance.d(4+1,4+2)+2*instance.d(1,4+2))*2/3 + instance.d(4+1,4+2)*(1/3)
-J(5,2) = (instance.d(4+1,4+2)+2*instance.d(1,4+2))*3/3 + instance.d(4+1,4+2)*(0)
-J(5,1) = instance.d(4+1,1)+instance.d(1,4+2)
+J(5,5:7) = instance.d(4+1,4+2);
+J(5,4) = (instance.d(4+1,4+2)+2*instance.d(1,4+2))*1/3 + instance.d(4+1,4+2)*(2/3);
+J(5,3) = (instance.d(4+1,4+2)+2*instance.d(1,4+2))*2/3 + instance.d(4+1,4+2)*(1/3);
+J(5,2) = (instance.d(4+1,4+2)+2*instance.d(1,4+2))*3/3 + instance.d(4+1,4+2)*(0);
+J(5,1) = instance.d(4+1,1)+instance.d(1,4+2);
 
 %Demand of customer 4
-J(4,4:7) = instance.d(3+1,3+2)
-J(4,3) = (instance.d(3+1,3+2)+2*instance.d(1,3+2))*1/3 + instance.d(3+1,3+2)*(2/3)
-J(4,2) = (instance.d(3+1,3+2)+2*instance.d(1,3+2))*2/3 + instance.d(3+1,3+2)*(1/3)
-J(4,1) = instance.d(3+1,1)+instance.d(1,3+2)
+J(4,4:7) = instance.d(3+1,3+2);
+J(4,3) = (instance.d(3+1,3+2)+2*instance.d(1,3+2))*1/3 + instance.d(3+1,3+2)*(2/3);
+J(4,2) = (instance.d(3+1,3+2)+2*instance.d(1,3+2))*2/3 + instance.d(3+1,3+2)*(1/3);
+J(4,1) = instance.d(3+1,1)+instance.d(1,3+2);
 
 %Demand of customer 3
-J(3,4:7) = instance.d(2+1,2+2)
-J(3,3) = (instance.d(2+1,2+2)+2*instance.d(1,2+2))*1/3 + instance.d(2+1,2+2)*(2/3)
-J(3,2) = (instance.d(2+1,2+2)+2*instance.d(1,2+2))*2/3 + instance.d(2+1,2+2)*(1/3)
-J(3,1) = instance.d(2+1,1)+instance.d(1,2+2)
+J(3,4:7) = instance.d(2+1,2+2);
+J(3,3) = (instance.d(2+1,2+2)+2*instance.d(1,2+2))*1/3 + instance.d(2+1,2+2)*(2/3);
+J(3,2) = (instance.d(2+1,2+2)+2*instance.d(1,2+2))*2/3 + instance.d(2+1,2+2)*(1/3);
+J(3,1) = instance.d(2+1,1)+instance.d(1,2+2);
 
 %Demand of customer 2
-J(2,4:7) = instance.d(1+1,1+2)
-J(2,3) = (instance.d(1+1,1+2)+2*instance.d(1,1+2))*1/3 + instance.d(1+1,1+2)*(2/3)
-J(2,2) = (instance.d(1+1,1+2)+2*instance.d(1,1+2))*2/3 + instance.d(1+1,1+2)*(1/3)
-J(2,1) = instance.d(1+1,1)+instance.d(1,1+2)
+J(2,4:7) = instance.d(1+1,1+2);
+J(2,3) = (instance.d(1+1,1+2)+2*instance.d(1,1+2))*1/3 + instance.d(1+1,1+2)*(2/3);
+J(2,2) = (instance.d(1+1,1+2)+2*instance.d(1,1+2))*2/3 + instance.d(1+1,1+2)*(1/3);
+J(2,1) = instance.d(1+1,1)+instance.d(1,1+2);
 
 J(1,:) = instance.d(1+1,1);%d(1,0) q_l is irrelevant
+
+%% Review real backward expected distance (2)
+
+%q_l frecuency to asses probability
+PQ = [NaN NaN 1/3 1/3 1/3 NaN NaN ; 
+    2/9 4/9 2/9 1/9 NaN NaN NaN ;
+    1/4 1/4 1/12 1/12 1/6 1/6 NaN ;
+    1/6 1/6 1/6 1/6 1/6 1/6 NaN ;
+    1/6 2/9 2/9 1/6 1/9 1/9 NaN];
+
+
+
+
 
 
 
