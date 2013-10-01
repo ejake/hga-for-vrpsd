@@ -476,7 +476,11 @@ tau = [0 1:n 0];
 %tau = [0 5 3 2 1 4 0];
 tic;
 expectd = expectedDistance(instance, tau, 0, instance.Q);
+disp('Forward expected distance algorithm:');
+disp(expectd);
 timeSpent = toc;
+disp('Time: ');
+disp(timeSpent);
 
 %% Run backward expected distance
 tau = [0 1:n 0];
@@ -578,17 +582,29 @@ J(1,:) = instance.d(1+1,1);%d(1,0) q_l is irrelevant
 
 %% Review real backward expected distance (2)
 
-%q_l frecuency to asses probability
-PQ = [NaN NaN 1/3 1/3 1/3 NaN NaN ; 
-    2/9 4/9 2/9 1/9 NaN NaN NaN ;
-    1/4 1/4 1/12 1/12 1/6 1/6 NaN ;
-    1/6 1/6 1/6 1/6 1/6 1/6 NaN ;
-    1/6 2/9 2/9 1/6 1/9 1/9 NaN];
+%q_l frecuency to asses probability for dummy instance
+PQ = [0 0 1/3 1/3 1/3 0 0 ; 
+    2/9 4/9 2/9 1/9 0 0 0 ;
+    1/4 1/4 1/12 1/12 1/6 1/6 0 ;
+    1/6 1/6 1/6 1/6 1/6 1/6 0 ;
+    1/6 2/9 2/9 1/6 1/9 1/9 0];
+
+tic; % start timer
+e = gammaEd(instance.Q,0,instance,PQ);
+timeSpent = toc; % stop timer
+disp('Forward expected algorithm (2): ');
+disp(e);
+disp('Time: ');
+disp(timeSpent);
+
+%Backward approach:
 
 
-
-
-
-
-
+%% Test backward
+l=0;
+ql=instance.Q;
+tic;
+el = gammaBackwardEd(l,ql,instance);
+timeSpent = toc;
+fprintf('Expected distance to sequential tour, starting in %d with q_%d = %d: %6.4f (%6.4f sec)\n', l, l, ql, el, timeSpent);
 
