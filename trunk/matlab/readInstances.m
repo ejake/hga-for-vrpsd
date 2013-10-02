@@ -7,7 +7,7 @@ outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
 fprintf(oFile,'Outcomes expected distance algorithms (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
-fprintf(oFile,'instance;n;time exhaustive alg;time recursive alg;tour;Q;average distance;expected distance\r\n');
+fprintf(oFile,'instance;n;time exhaustive alg;time recursive alg; time dp alg; tour;Q;average distance;expected distance; dp expected distance\r\n');
 % ---
 % -- Specify location of input data (instances) 
 %Windows:
@@ -62,11 +62,18 @@ for i=1:length(listing)
     tic;
     expd = gammaBackwardEd(0,instance.Q,instance);
     timeSpent2 = toc;
+    % ---
+    % Asses dp algorithm to expected distance with memorization
+    tour = 0:instance.n;
+    tic;
+    bed = backwardExpectedDistance(tour, instance);
+    timeSpent3 = toc;
     % -- Write results in a output file
     fprintf(oFile, '%s;',listing(i).name);
     fprintf(oFile, ' %i',instance.n);
     fprintf(oFile, '%10.2f;',timeSpent);
     fprintf(oFile, '%10.2f;',timeSpent2);
+    fprintf(oFile, '%10.2f;',timeSpent3);
     for k=1: (length(pi))
         fprintf(oFile, ' %i',pi(k).m);
     end
@@ -74,6 +81,7 @@ for i=1:length(listing)
     fprintf(oFile, ' %i;',instance.Q);
     fprintf(oFile, ' %6.6f;',avgDist);
     fprintf(oFile, ' %6.6f;',expd);
+    fprintf(oFile, ' %6.6f;',bed);
     fprintf(oFile,'\r\n');
     % ---
 end
@@ -175,7 +183,7 @@ clear all;
 % -- Create output file
 %outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
 outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
-outputFile = 'aped_outcome.csv';
+outputFile = 'aped_outcome_20131002.csv';
 outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'w');
 currentTime = clock;
@@ -225,7 +233,7 @@ for i=1:length(listing)
     for j=1:size(all_perms_tau,1)
         tau = [0 all_perms_tau(j,:) 0];
         tic;
-        expectd2 = backwardExpectedDistance(instance, tau, 0, instance.Q);
+        expectd2 = backwardExpectedDistance(tau, instance);
         timeSpent = toc;
         % ---
     % -- Write results in a output file    
@@ -541,8 +549,7 @@ end
 avgDist = sum(frecD.*disD)/sum(frecD);
 plot(frecD);
 hist(allDis);
-disp('Real expected distance');
-disp(mean(allDis));
+fprintf('Real expected distance: %6.4f\n', mean(allDis));
 %disp(avgDist);
 
 %% Review real backward expected distance
@@ -616,4 +623,10 @@ fprintf('Expected distance to sequential tour, starting in %d with q_%d = %d: %6
 % Implementing dynamic programming backward algorithm with memorization
 % (2/10/2013)
 %------------------
+
+tic;
+tour = 0:instance.n;
+bed = backwardExpectedDistance(tour, instance);
+timeSpent = toc;
+fprintf('Backward Expected distance to sequential tour: %6.4f (%6.4f sec)\n', bed, timeSpent);
 
