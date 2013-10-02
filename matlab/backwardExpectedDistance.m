@@ -1,47 +1,55 @@
-function [ Elen ] = backwardExpectedDistance( instance, tau, l, ql )
-J= zeros(instance.n + 1, instance.Q +1);
-for i=l:instance.n
-    for j=0:ql
-        Elen = backExJ(instance, tau, instance.n-i, ql-j, J);
-        J(instance.n-i+1,ql-j+1) = Elen;
-    end
-    %J = min(sts(n-l+1,:));
-end
+function Exp = backwardExpectedDistance( instance )
+%memorization
+J = zeros(instance.n, instance.Q+1);
+%Base case
+J(instance.n,:) = backwardEd(instance.n, 0, instance, J);
 
-end
-
-function [ E ] = backExJ( instance, tau, l, qi, J )
-%BackwardExpectedDistance Expected distance of an priori solution (base
-%sequence)
-%   The expected distance is assesing using a backward method
-%
-if l == instance.n %tau(instance.n) %n is the last costumer in the tour
-	E = instance.d(tau(l+1)+1,1); %d(n,0)
-else
-    if l == 0
-        E = instance.d(tau(l+2)+1,1) + J(l+2,qi+1);        
-    else
-        %---
-        auxE0 = instance.d(tau(l+2)+1, tau(l+1)+1);%d(i+1,i)
-        for j=0:qi
-            auxE0 = auxE0 + J(l+2,j+1)*...
-                probDemand (j, tau(l+2), instance);%1/(b-a+1)
-        end
-        for j=qi+1:instance.Cust(tau(l+2)).PD(2)
-            auxE0 = auxE0 + (2*instance.d(1,tau(l+2)+1)+ ...%d(0,i+1)
-                J(l+2,instance.Q+qi-j))*...
-                probDemand (j, tau(l+2), instance);%1/(b-a+1)
-        end
-        %---
-        auxE1 = instance.d(1,tau(l+1)+1) + instance.d(1, tau(l+2)+1);%d(0,i)+d(0,i+1)
-        for j=0:instance.Cust(tau(l+2)).PD(2)
-            auxE1 = auxE1 + J(l+2,instance.Q-j)*...
-                probDemand (j, tau(l+2), instance);%1/(b-a+1)
-        end
-        %---
-        E = min(auxE1, auxE0);
+for i = instance.n-1:-1:1
+    for j = instance.Q+1:-1:1
+        %fprintf('Computing gamma_%d(%d)\n',i,j-1);
+        J(i,j) = backwardEd( i, j-1, instance, J );
     end
 end
-
+Exp = backwardEd( 0, instance.Q, instance, J );
 end
 
+
+function E = backwardEd( l, ql, instance, J )
+%GAMMABACKWARDED Summary of this function goes here
+%   Assume secuential tour, i.e. tau = [0 1 2 ... n-1 n]
+el = 0;
+if(l==instance.n)
+    E = instance.d(l+1,1); %d(n,0)
+elseif (l == 0)    
+    for di = instance.Cust(l+1).PD(1):instance.Cust(l+1).PD(2)
+        gamma1 = instance.d(l+1, l+2);%d(0,l+1)
+        gamma1 = (gamma1 + J(l+1, ql - di + 1))*...
+            probDemand (di, l+1, instance);%1/(b-a+1)
+        el = el + gamma1;
+    end
+    E = el;
+else    
+    for di = instance.Cust(l+1).PD(1):instance.Cust(l+1).PD(2)
+        if(ql == 0)
+            gamma2 = (instance.d(l+1, 1) + instance.d(l+2,1));%proactive replanishment
+            gamma2 = (gamma2 + J(l+1, instance.Q - di + 1))*...
+                probDemand (di, l+1, instance);%1/(b-a+1)
+            el = el + gamma2;
+        else
+            if(di <= ql)        
+                gamma1 = instance.d(l+1, l+2);
+                gamma1 = (gamma1 + J(l+1, ql - di + 1))*...
+                    probDemand (di, l+1, instance);%1/(b-a+1)
+                el = el + gamma1;
+            else
+                gamma0 = (instance.d(l+1, l+2) + 2*instance.d(l+2,1));
+                gamma0 = (gamma0 + J(l+1, instance.Q + ql - di + 1))*...
+                    probDemand (di, l+1, instance);%1/(b-a+1)
+                el = el + gamma0;
+            end        
+        end        
+    end
+    E = el;
+end
+
+end
