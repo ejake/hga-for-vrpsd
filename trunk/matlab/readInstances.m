@@ -1,25 +1,21 @@
 % Read all files an run exact expected distance (only for small instances)
 clear all;
 % -- Create output file
-%outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
-%outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
-outputPath = '/home/lisi/Documents/vrpsd/outcomes/';
-outputFile = 'exdist_cyclic_outcome.csv';
+outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
+outputFile = 'exdist_outcome_20131001.csv';
 outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
-fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
-fprintf(oFile,'instance;n;time;tour;Q;average distance;total demand;frecuency;distance\r\n');
+fprintf(oFile,'Outcomes expected distance algorithms (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
+fprintf(oFile,'instance;n;time exhaustive alg;time recursive alg;tour;Q;average distance;expected distance\r\n');
 % ---
 % -- Specify location of input data (instances) 
 %Windows:
 %path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
 %path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
 %Linux:
-path_wildchar = '/home/lisi/Documents/vrpsd/instances/*.dat';
-path = '/home/lisi/Documents/vrpsd/instances/';
-%path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
-%path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
+path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
+path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
 listing = dir(path_wildchar);
 for i=1:length(listing)    
     % -- Read instance file
@@ -53,31 +49,31 @@ for i=1:length(listing)
     end    
     tic;
     if instance.n == 5
-        [frecD disD] = distanceDistribution5n(pi, instance, 1);
+        [frecD disD allDis] = distanceDistribution5n(pi, instance, 0);
     end
     if instance.n == 8
-        [frecD disD] = distanceDistribution8n(pi, instance, 1);
+        [frecD disD allDis] = distanceDistribution8n(pi, instance, 1);
     end
-    timeSpent = toc;
-    avgDist = sum(frecD.*disD)/sum(frecD);
+    timeSpent = toc;    
+    avgDist = mean(allDis);
+    %avgDist = sum(frecD.*disD)/sum(frecD);
+    % ---
+    % Asses expected distance with recursive algorithm
+    tic;
+    expd = gammaBackwardEd(0,instance.Q,instance);
+    timeSpent2 = toc;
     % -- Write results in a output file
     fprintf(oFile, '%s;',listing(i).name);
     fprintf(oFile, ' %i',instance.n);
     fprintf(oFile, '%10.2f;',timeSpent);
+    fprintf(oFile, '%10.2f;',timeSpent2);
     for k=1: (length(pi))
         fprintf(oFile, ' %i',pi(k).m);
     end
     fprintf(oFile, ';');
     fprintf(oFile, ' %i;',instance.Q);
     fprintf(oFile, ' %6.6f;',avgDist);
-    for k=1: (length(frecD))
-        fprintf(oFile, ' %i',frecD(k));
-    end
-    fprintf(oFile, ';');
-    for k=1: (length(disD))
-        fprintf(oFile, ' %i',disD(k));
-    end
-    fprintf(oFile, ';');
+    fprintf(oFile, ' %6.6f;',expd);
     fprintf(oFile,'\r\n');
     % ---
 end
@@ -581,6 +577,7 @@ J(2,1) = instance.d(1+1,1)+instance.d(1,1+2);
 J(1,:) = instance.d(1+1,1);%d(1,0) q_l is irrelevant
 
 %% Review real backward expected distance (2)
+% (1/10/2013)
 
 %q_l frecuency to asses probability for dummy instance
 PQ = [0 0 1/3 1/3 1/3 0 0 ; 
@@ -597,14 +594,26 @@ disp(e);
 disp('Time: ');
 disp(timeSpent);
 
-%Backward approach:
 
-
-%% Test backward
+%% New algorithm to asses expected distance
+%------------------
+% - In forward approach is to close to real expected distance, applied
+% to dummy instance was 0.1 different 
+% - This algorithm implementation assume a tour sequential, i.e. \tau = [0 1 2 ... n]
+% (1/10/2013)
+%------------------
 l=0;
 ql=instance.Q;
 tic;
 el = gammaBackwardEd(l,ql,instance);
 timeSpent = toc;
 fprintf('Expected distance to sequential tour, starting in %d with q_%d = %d: %6.4f (%6.4f sec)\n', l, l, ql, el, timeSpent);
+%Expected distance to sequential tour, starting in 0 with q_0 = 6: 6.4944 (0.0672 sec)
+
+
+%% Assesing expected distance
+%------------------
+% Implementing dynamic programming backward algorithm with memorization
+% (2/10/2013)
+%------------------
 
