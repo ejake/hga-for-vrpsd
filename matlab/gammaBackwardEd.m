@@ -1,6 +1,6 @@
 function E = gammaBackwardEd( l, ql, instance )
 %GAMMABACKWARDED Summary of this function goes here
-%   Assume secuential tour, i.e. tau = [0 1 2 ... n-1 n]
+%   Assume secuential tour ordered, i.e. tau = [0 1 2 ... n-1 n]
 el = 0;
 if(l==instance.n)
     E = instance.d(l+1,1); %d(n,0)
