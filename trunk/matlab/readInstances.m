@@ -630,3 +630,10 @@ bed = backwardExpectedDistance(tour, instance);
 timeSpent = toc;
 fprintf('Backward Expected distance to sequential tour: %6.4f (%6.4f sec)\n', bed, timeSpent);
 
+%% Computing rollout algorithm
+%--------------------
+% Rollout algorithm implementation using new (right) algorithm to asses
+% expected distance
+% (20/1/2014)
+%--------------------
+
