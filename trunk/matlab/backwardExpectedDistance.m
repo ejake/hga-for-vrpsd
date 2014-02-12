@@ -1,7 +1,7 @@
 function Exp = backwardExpectedDistance( tour, instance )
 %BACKWARDEXPECTEDDISTANCE Dynamic programming algorithm to compute expected
 %distance of a tour given
-%   Assume secuential tour, i.e. tour = [0 1 2 ... n-1 n]
+%  e.g. tour = [0 1 2 ... n-1 n]
 
 %Memorization
 J = zeros(instance.n, instance.Q+1);%size: n X Q
@@ -20,7 +20,7 @@ end
 
 function E = backwardEd( l, ql, instance, J, tour )
 %BACKWARDED Summary of this function goes here
-%   Assume secuential tour, i.e. tau = [0 1 2 ... n-1 n]
+%   e.g. tau = [0 1 2 ... n-1 n]
 el = 0;
 if(l==instance.n)
     E = instance.d(tour(l+1) + 1,1); %d(n,0)

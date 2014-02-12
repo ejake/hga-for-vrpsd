@@ -634,6 +634,14 @@ fprintf('Backward Expected distance to sequential tour: %6.4f (%6.4f sec)\n', be
 %--------------------
 % Rollout algorithm implementation using new (right) algorithm to asses
 % expected distance
-% (20/1/2014)
+% (12/2/2014)
 %--------------------
+
+
+% base tour (a priori solution)
+l = 1;
+tau_l = [l:instance.n 1:l-1];
+
+
+
 
