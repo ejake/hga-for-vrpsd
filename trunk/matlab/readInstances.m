@@ -638,10 +638,19 @@ fprintf('Backward Expected distance to sequential tour: %6.4f (%6.4f sec)\n', be
 %--------------------
 
 
-% base tour (a priori solution)
+% base tour (a priori solution) - Cyclic heuristic
 l = 1;
 tau_l = [l:instance.n 1:l-1];
 
-
-
-
+%computing the first customer to be visited by pi
+minEd = inf;
+minl = 0;
+for l=1 : instance.n
+    tau_l = [0 l:instance.n 1:l-1];
+    edl = backwardExpectedDistance(tau_l, instance);
+    if(edl < minEd)
+        minEd = edl;
+        minl = l;
+        disp(tau_l);
+    end
+end

@@ -2,6 +2,7 @@ function Exp = backwardExpectedDistance( tour, instance )
 %BACKWARDEXPECTEDDISTANCE Dynamic programming algorithm to compute expected
 %distance of a tour given
 %  e.g. tour = [0 1 2 ... n-1 n]
+%   O(nRQ) time, O(nQ) space
 
 %Memorization
 J = zeros(instance.n, instance.Q+1);%size: n X Q
