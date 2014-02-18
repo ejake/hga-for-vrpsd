@@ -8,6 +8,7 @@ function [ pi expPi ] = rollout( instance, state, tau )
 %   tau: e.g. (l,l+1,...,n,1,...n-1)
 % Output:
 % Policy pi improved
+% Cache for J can improve exectuion time
 
     pi = [];
     x = state;
@@ -32,13 +33,27 @@ function [ pi expPi ] = rollout( instance, state, tau )
     %move to next state
     x = move2nextState(instance, pi(i));
     i = i+1;
+    tau_l = min_tau;
     
     %computing the remaining customers to be visited by pi
     while ( ~ x.isFinalState )
         for j = 1:length(sNu) % for each node unvisited ( sNu(j) ) asses expected distance for partial tour
-            J0 = cost2goBackwardJ(instance, min_tau, i, x.q_l, 0);
-            J1 = cost2goBackwardJ(instance, min_tau, i, x.q_l, 1);
+            J0 = cost2goBackwardJ(instance, tau_l, i, x.q_l, 0);
+            J1 = cost2goBackwardJ(instance, tau_l, i, x.q_l, 1);
+            [edl a] = min([J0 J1]);
+            if(edl < minEd)
+                minEd = edl;
+                minl = l;
+                min_tau = tau_l;
+            end
+            tau_l = [tau(1:i-1) circshift(tau(i:instance.n), [1,1])]; % cyclic heuristic applied to tau subsequence
         end
+        pi = [pi Control(minl, a-1)];
+        sNu(sNu == minl) = [];
+        %move to next state
+        x = move2nextState(instance, pi(i));
+        i = i+1;
+        tau_l = min_tau;
     end
     
     expPi = minEd;
