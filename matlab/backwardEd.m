@@ -1,8 +1,8 @@
-function E = gammaBackwardEd( l, ql, instance, J, tour )
-%GAMMABACKWARDED Summary of this function goes here
-%   (17/2/2014) This function is equal to backwardEd in backwardExpectedDistance
-%
+function E = backwardEd( l, ql, instance, J, tour )
+%BACKWARDED Summary of this function goes here
 %   e.g. tau = [0 1 2 ... n-1 n]
+% (17/2/2014)
+
 el = 0;
 if(l==instance.n)
     E = instance.d(tour(l+1) + 1,1); %d(n,0)
@@ -39,4 +39,3 @@ else
 end
 
 end
-

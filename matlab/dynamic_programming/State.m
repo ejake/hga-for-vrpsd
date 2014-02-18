@@ -1,6 +1,6 @@
 classdef State % < handle
-    %STATE Summary of this class goes here
-    %   Detailed explanation goes here
+    %STATE x_l = (l,q_l,r_1,...,r_n)
+    %   State x_l
     
     properties
         l = 0;
@@ -22,8 +22,9 @@ classdef State % < handle
                 ifs = false;
             end
         end
+        
         %moveState:
-        function [ obj instance ] = move2nextState( obj, instance, u )
+        function [ obj instance ] = move2nextState( obj, instance, u , updateInstance)
         %   Input:
         %   obj: state before updating (this Class (State))
         %   instance: VRPSD instance before updating
@@ -32,8 +33,12 @@ classdef State % < handle
         %   obj: state after updating movement (this Class (State))
         %   instance: Instance after moving, demand of customer visited is updated
             %Assign demand if it is unknowed
+            updateInstance = logical(updateInstance);
+            
             if(instance.Cust(u.m).D == -99)
-                instance.Cust(u.m) = instance.Cust(u.m).getDemand;%Review
+                if(updateInstance)
+                    instance.Cust(u.m) = instance.Cust(u.m).getDemand; % Review
+                end
                 obj.r(u.m) = instance.Cust(u.m).D;
             end
             q = obj.q_l;
