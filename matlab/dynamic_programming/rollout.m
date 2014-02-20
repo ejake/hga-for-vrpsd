@@ -1,4 +1,4 @@
-function [ pi expPi ] = rollout( instance, state, tau )
+function pi  = rollout( instance, state, tau )
 %ROLLOUT Algorithm
 %   Neuro dynamic programming
 % Input:
@@ -26,10 +26,12 @@ function [ pi expPi ] = rollout( instance, state, tau )
             minl = l;
             min_tau = tau;
         end
+        fprintf('tour evaluated [ %s ] (Expected distance since 0 : %6.4f)\n', num2str(tau), edl);
         tau = circshift(tau, [1,1]); % cyclic heuristic
     end
     pi = [pi Control(minl, 0)];
     sNu(sNu == minl) = [];
+    
     %move to next state
     x = x.move2nextState(instance, pi(i+1));
     i = i+1;
@@ -43,17 +45,20 @@ function [ pi expPi ] = rollout( instance, state, tau )
             [edl a] = min([J0 J1]);
             if(edl < minEd)
                 minEd = edl;
-                minl = l;
+                minl = tau(i+1);
+                mina = a - 1;
                 min_tau = tau;
             end
-            tau = [tau(1:i-1) circshift(tau(i:instance.n), [1,1])]; % cyclic heuristic applied to tau subsequence
+            fprintf('tour evaluated [ %s ](Expected distance since %i : %6.4f )\n', num2str(tau), tau(i), edl);
+            tau = [tau(1:i) circshift(tau(i+1:instance.n), [1,1])]; % cyclic heuristic applied to tau subsequence
         end
-        pi = [pi Control(minl, a-1)];
+        pi = [pi Control(minl, mina)];
         sNu(sNu == minl) = [];
         %move to next state
         x = x.move2nextState(instance, pi(i+1));
+        x.r(pi(i+1).m) = 0;%  Toforce to totally serve customer for reach final state
         i = i+1;
         tau = min_tau;
     end    
-    expPi = minEd;
+    
 end
