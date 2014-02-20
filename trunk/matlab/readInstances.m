@@ -261,12 +261,12 @@ clear all;
 % -- Create output file
 %outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
 outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
-outputFile = 'ra_outcome.csv';
+outputFile = 'ra_outcome20140220.csv';
 outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'w');
 currentTime = clock;
 fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
-fprintf(oFile,'instance;n;time;policy_m;policy_a;time_expected_distance;expected_distance;avg_travel_distance_tour;tour_travel_distance_sim_tou;avg_travel_distance_simulate_policy;tour_travel_distance_sim_policy\r\n');
+fprintf(oFile,'instance;n;time;policy_m;policy_a;time_expected_distance;expected_distance\r\n');
 %fprintf(oFile, '%10.2f; %i; %i; %10.2f; %6.6f; %6.6f; %i; %6.6f; %i \r\n',timeSpent,policy_m,policy_a,timeExSpent,expectd,simCost0, simTour0, simCost1, simTour1);
     
 % ---
@@ -289,6 +289,7 @@ for i=1:length(listing)
         data = [data ;str2num(txt)];
     end
     fclose(fid);
+    disp(listing(i).name);
     % ---
     % -- Initialize instance values
     %Number of customers
@@ -307,60 +308,37 @@ for i=1:length(listing)
     st(3:instance.n+2) = -99;
     % ---
     % -- Rollout algorithm
-    tau = [0 1:n 0];
-    x0 = State(instance.n, instance.Q);
+    % base tour (a priori solution) - Cyclic heuristic
+    l = 1;
+    tau_l = [l:instance.n 1:l-1];    
     tic; % start timer
-    rapolicy = rollout( tau, instance, x0 );
+    pi = rollout (instance, State(instance.n, instance.Q), tau_l);
     timeSpent = toc; % stop timer
     % ---
     % -- Prepare outcomes data
-    policy_m = zeros(1,length(rapolicy));
-    policy_a = zeros(1,length(rapolicy));
-    for k=1: length(rapolicy)
-        policy_m(k) = rapolicy(k).m;
-        policy_a(k) = rapolicy(k).a;
+    policy_m = zeros(1,length(pi));
+    policy_a = zeros(1,length(pi));
+    for k=1: length(pi)
+        policy_m(k) = pi(k).m;
+        policy_a(k) = pi(k).a;
     end
-    %Expected distance
-    eTau = [0 policy_m 0];
+    %Expected distance    
     tic % start timer
     expectd = -1;
-    if length(eTau) == n+2
-        expectd = backwardExpectedDistance(instance, eTau, 0, instance.Q);
+    if length(policy) == n
+        expectd = backwardExpectedDistance([0 tau], instance);
     end
     timeExSpent =toc; % stop timer
-    %Simulating tour
-    simCost0 = -1;
-    simTour0 = [];
-    simCost1 = -1;
-    simTour1 = [];
-    if length(eTau) == n+2
-        [simCost0 simTour0] = simTripDistance(rapolicy, instance, 0);
-        [simCost1 simTour1] = simTripDistance(rapolicy, instance, 1);
-    end 
     
     % ---
     % -- Write results in a output file    
-    fprintf(oFile, '%s;',listing(i).name);
-    fprintf(oFile, '%10.2f;',timeSpent);
-    for k=1: length(policy_m)
-        fprintf(oFile, ' %i',policy_m(k));
-    end
-    fprintf(oFile, ';');
-    for k=1: length(policy_a)
-        fprintf(oFile, ' %i',policy_a(k));
-    end
-    fprintf(oFile, ';');
-    fprintf(oFile, ' %10.2f;',timeExSpent);
-    fprintf(oFile, ' %6.6f;',expectd);
-    fprintf(oFile, ' %6.6f;',simCost0); 
-    for k=1: length(simTour0)
-        fprintf(oFile, ' %i',simTour0(k));
-    end
-    fprintf(oFile, ';');
-    fprintf(oFile, ' %6.6f;',simCost1); 
-    for k=1: length(simTour1)
-        fprintf(oFile, ' %i',simTour1(k));
-    end
+    fprintf(oFile, '%s;',listing(i).name);%instance name
+    fprintf(oFile, '%i;',instance.n);%instance size
+    fprintf(oFile, '%10.2f;',timeSpent);%running time of RA
+    fprintf(oFile, ' %s;', num2str(policy_m));%tour constructed by RA
+    fprintf(oFile, ' %s;', num2str(policy_a));% proactive replanishment of policy contructed by RA
+    fprintf(oFile, ' %10.2f;',timeExSpent);%running time of tour backward expected distance contructed by RA
+    fprintf(oFile, ' %6.6f;',expectd);%expected distance    
     fprintf(oFile,'\r\n');
     % ---
 end
