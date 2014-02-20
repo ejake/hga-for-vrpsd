@@ -640,13 +640,20 @@ fprintf('Backward Expected distance to sequential tour: %6.4f (%6.4f sec)\n', be
 
 % base tour (a priori solution) - Cyclic heuristic
 l = 3;
-tau_l = [l:instance.n 1:l-1];
-%tau_l = [2 3 5 1 4];
+%tau_l = [l:instance.n 1:l-1];
+tau_l = [2 3 5 1 4];
+tau = zeros(1,instance.n);
 
 pi = rollout (instance, State(instance.n, instance.Q), tau_l);
 
 fprintf('pi = (');
 for i=1:length(pi)
     fprintf(' (%i,%i)',pi(i).m,pi(i).a);
+    tau(i) = pi(i).m;
 end
 fprintf(')\n');
+
+tic;
+bed = backwardExpectedDistance([0 tau], instance);
+timeSpent = toc;
+fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpent);
