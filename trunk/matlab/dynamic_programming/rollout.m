@@ -23,7 +23,7 @@ function pi  = rollout( instance, state, tau )
         edl = backwardExpectedDistance([0 tau], instance);
         if(edl < minEd)
             minEd = edl;
-            minl = l;
+            minl = tau(i+1);
             min_tau = tau;
         end
         fprintf('tour evaluated [ %s ] (Expected distance since 0 : %6.4f)\n', num2str(tau), edl);
@@ -56,7 +56,7 @@ function pi  = rollout( instance, state, tau )
         sNu(sNu == minl) = [];
         %move to next state
         x = x.move2nextState(instance, pi(i+1));
-        x.r(pi(i+1).m) = 0;%  Toforce to totally serve customer for reach final state
+        x.r(pi(i+1).m) = 0;%  To force to totally serve customer for reach final state
         i = i+1;
         tau = min_tau;
     end    
