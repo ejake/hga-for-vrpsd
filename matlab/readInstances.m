@@ -325,8 +325,8 @@ for i=1:length(listing)
     %Expected distance    
     tic % start timer
     expectd = -1;
-    if length(policy) == n
-        expectd = backwardExpectedDistance([0 tau], instance);
+    if length(pi) == n
+        expectd = backwardExpectedDistance([0 policy_m], instance);
     end
     timeExSpent =toc; % stop timer
     
@@ -617,9 +617,9 @@ fprintf('Backward Expected distance to sequential tour: %6.4f (%6.4f sec)\n', be
 
 
 % base tour (a priori solution) - Cyclic heuristic
-l = 3;
-%tau_l = [l:instance.n 1:l-1];
-tau_l = [2 3 5 1 4];
+l = 1;
+tau_l = [l:instance.n 1:l-1];
+%tau_l = [2 3 5 1 4];
 tau = zeros(1,instance.n);
 
 pi = rollout (instance, State(instance.n, instance.Q), tau_l);
