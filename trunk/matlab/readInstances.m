@@ -261,9 +261,9 @@ clear all;
 % -- Create output file
 %outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
 outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
-outputFile = 'ra_outcome20140220.csv';
+outputFile = 'ra_outcome20140225.csv';
 outputFullPath = [outputPath outputFile];
-oFile = fopen(outputFullPath, 'w');
+oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
 fprintf(oFile,'Results RA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
 fprintf(oFile,'instance;n;time;policy_m;policy_a;time_expected_distance;expected_distance\r\n');
@@ -341,6 +341,7 @@ for i=1:length(listing)
     fprintf(oFile, ' %6.6f;',expectd);%expected distance    
     fprintf(oFile,'\r\n');
     % ---
+    clear instance;
 end
 % -- Close outputFile
 fclose(oFile);
