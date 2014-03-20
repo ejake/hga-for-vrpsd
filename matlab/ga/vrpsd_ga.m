@@ -1,25 +1,20 @@
-function [opt_rte min_dist] = vrpsd_ga(instance,pop_size,num_iter,show_prog,show_res)
-%TSP_GA Traveling Salesman Problem (TSP) Genetic Algorithm (GA)
-%   Finds a (near) optimal solution to the TSP by setting up a GA to search
-%   for the shortest route (least distance for the salesman to travel to
-%   each city exactly once and return to the starting city)
-%
-% Summary:
-%     1. A single salesman travels to each of the cities and completes the
-%        route by returning to the city he started from
-%     2. Each city is visited by the salesman exactly once
+function [opt_pol min_exp] = vrpsd_ga(instance,pop_size,num_iter,epsilon,show_prog,show_res)
+%VRPSD_GA Vehilce Routing Problem Whit Stochastic Demands (VRPSD) Genetic Algorithm (GA)
+%   Finds a (near) optimal solution to the VRPSD by setting up a GA to search
+%   for the shortest route (least expected distance for the vehicle to travel to
+%   each customer and return to the depot)
 %
 % Input:
-%     XY (float) is an Nx2 (or Nx3) matrix of cities
-%     DMAT (float) is an NxN matrix of point to point distances/costs
+%     INSTANCE (object instance)     
 %     POP_SIZE (scalar integer) is the size of the population (should be divisible by 4)
 %     NUM_ITER (scalar integer) is the number of desired iterations for the algorithm to run
+%     EPSILON
 %     SHOW_PROG (scalar logical) shows the GA progress if true
 %     SHOW_RES (scalar logical) shows the GA results if true
 %
 % Output:
-%     OPT_RTE (integer array) is the best route found by the algorithm
-%     MIN_DIST (scalar float) is the cost of the best route
+%     OPT_POL (integer array) is the best policy found by the algorithm
+%     MIN_EXP (scalar float) is the cost of the best policy
 %
 % Example:
 %     n = 50;
@@ -32,27 +27,27 @@ function [opt_rte min_dist] = vrpsd_ga(instance,pop_size,num_iter,show_prog,show
 %     show_res = 1;
 %     [opt_rte,min_dist] = tsp_ga(xy,dmat,pop_size,num_iter,show_prog,show_res);
 %
-% Author: Joseph Kirk
-% Email: jdkirk630@gmail.com
-% Release: 2.0
-% Release Date: 8/23/08
+% Author: Andres Jaque
+% Email: rajaquep@gmail.com
+% Release: 1.0
+% Release Date: 3/6/08
 
 
 % Verify Inputs
 n = instance.n;
 [nr,nc] = size(instance.d);
 if n ~= (nr-1) || n ~= (nc-1)
-    error('Invalid XY or DMAT inputs!')
+    error('Invalid instance inputs (distance)!')
 end
 
 % Sanity Checks
 pop_size = 4*ceil(pop_size/4);
-num_iter = max(2,round(real(num_iter(1))));
+num_iter = round(real(num_iter(1)));
 show_prog = logical(show_prog(1));
 show_res = logical(show_res(1));
 
 % Initialize the Population
-pop = initPopulation(pop_size,n);
+pop = initPopulationCyclic(pop_size, n);
 
 % Run the GA
 epsilon = 0.0000001;
@@ -68,7 +63,8 @@ if show_prog
     count_subplot =1;
 end
 
-for iter = 1:num_iter
+iter = 0;
+while ((iter < num_iter) && gain > epsilon)
     % Evaluate Each Population Member (Calculate Total Distance)
     for p = 1:pop_size        
         tau = [0 pop(p,:) 0];
