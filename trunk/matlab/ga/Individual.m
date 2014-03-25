@@ -5,7 +5,8 @@ classdef Individual
     properties
         tour = []; 
         policy = [];
-        rolledout = 0;
+        rolledout = logical(0);
+        expected_distance = Inf;
     end
     
     methods
