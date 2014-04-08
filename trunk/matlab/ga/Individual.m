@@ -10,9 +10,17 @@ classdef Individual
     end
     
     methods
-        function obj = Instance(n)
-           obj.tour = zeros(1,n);
-        end        
+        function obj = Individual(n)
+            if nargin > 0
+                obj.tour = zeros(1,n);
+            end
+        end
+        function obj = setTourOfPolicy( obj )
+            obj.tour = zeros(1,length(obj.policy));
+            for i=1:length(obj.policy)
+                obj.tour(i) = obj.policy(i).m;
+            end            
+        end
     end    
 end
 

@@ -1,4 +1,4 @@
-function pi  = rollout( instance, state, tau )
+function [pi cyEd]  = rollout( instance, state, tau )
 %ROLLOUT Algorithm
 %   Neuro dynamic programming
 % Input:
@@ -14,6 +14,7 @@ function pi  = rollout( instance, state, tau )
     x = state;
     sNu = 1:instance.n; % Set of nodes that still need to be visited (demand > 0)    
     l=0; % Current customer
+    cyEd = zeros(1,instance.n);%expected distance of each cyclic tour
     
     %computing the first customer to be visited by pi
     i = 0;
@@ -27,6 +28,7 @@ function pi  = rollout( instance, state, tau )
             min_tau = tau;
         end
         fprintf('tour evaluated [ %s ] (Expected distance since 0 : %6.4f)\n', num2str(tau), edl);
+        cyEd(l) = edl;
         tau = circshift(tau, [1,1]); % cyclic heuristic
     end
     pi = [pi Control(minl, 0)];

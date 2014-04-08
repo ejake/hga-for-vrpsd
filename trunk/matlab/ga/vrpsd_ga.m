@@ -47,28 +47,44 @@ show_prog = logical(show_prog(1));
 show_res = logical(show_res(1));
 
 % Initialize the Population
-pop = initPopulationCyclic(pop_size, n);
+pop = initPopulationCyclic(pop_size, n); %if pop_size >= n, pop_size - n individuals would be repeated
 
 % Run the GA
-epsilon = 0.0000001;
+if epsilon <= 0
+    epsilon = 0.0000001;
+end
 cnEpsilon = 0;
 gain = Inf;
-tmp_pop = zeros(4,n);
-new_pop = zeros(pop_size,n);
+offspring_pop = Individual.empty(4,0); % 4 is the size of offspring
+new_pop = Individual.empty(pop_size,0);
 global_min = Inf;
 total_dist = zeros(1,pop_size);
 dist_history = zeros(1,num_iter);
+
 if show_prog
     pfig = figure('Name','Current Best Solution','Numbertitle','off');
     count_subplot =1;
 end
 
+%Apply RA to a member of population
+[pi cyEd]  = rollout (instance, State(instance.n, instance.Q), pop(1).tour);
+%if cyclic heuristic is used  in RA expected distance is already computed
+for i=1:n
+    pop(i).expected_distance = cyEd(i);
+end
+offspring_pop(1) = Individual();
+offspring_pop(1).policy = pi;
+
 iter = 0;
 while ((iter < num_iter) && gain > epsilon)
-    % Evaluate Each Population Member (Calculate Total Distance)
-    for p = 1:pop_size        
-        tau = [0 pop(p,:) 0];
-        total_dist(p) = backwardExpectedDistance(instance, tau, 0, instance.Q);
+    % Evaluate Each Population Member (Calculate Expected Distance)
+    for p = 1:pop_size
+        if pop(p).expected_distance == Inf
+            tau = [0 pop(p,:) 0];
+            total_dist(p) = backwardExpectedDistance(instance, tau, 0, instance.Q);
+        else
+            total_dist(p) = pop(p).expected_distance;
+        end
     end
 
     % Find the Best Route in the Population

@@ -636,3 +636,12 @@ tic;
 bed = backwardExpectedDistance([0 tau], instance);
 timeSpent = toc;
 fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpent);
+
+%% Computing GA
+%-------------------------
+% GA implementation combining RA
+% (7/4/2014)
+
+%initialize population
+
+pop = initPopulationCyclic(n, n);
