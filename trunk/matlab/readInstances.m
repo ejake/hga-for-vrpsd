@@ -643,5 +643,4 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 % (7/4/2014)
 
 %initialize population
-
 pop = initPopulationCyclic(n, n);
