@@ -7,6 +7,7 @@ classdef Individual
         policy = [];
         rolledout = logical(0);
         expected_distance = Inf;
+        selection_probability = 1;
     end
     
     methods

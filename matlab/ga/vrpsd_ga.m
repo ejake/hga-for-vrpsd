@@ -55,7 +55,7 @@ if epsilon <= 0
 end
 cnEpsilon = 0;
 gain = Inf;
-offspring_pop = Individual.empty(4,0); % 4 is the size of offspring
+offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
 new_pop = Individual.empty(pop_size,0);
 global_min = Inf;
 total_dist = zeros(1,pop_size);
@@ -71,17 +71,17 @@ end
 %if cyclic heuristic is used  in RA expected distance is already computed
 for i=1:n
     pop(i).expected_distance = cyEd(i);
+    pop(i).rolledout = true;
 end
 offspring_pop(1) = Individual();
 offspring_pop(1).policy = pi;
 
 iter = 0;
-while ((iter < num_iter) && gain > epsilon)
+while ((iter < num_iter) && gain > epsilon) % stopping criterion
     % Evaluate Each Population Member (Calculate Expected Distance)
     for p = 1:pop_size
         if pop(p).expected_distance == Inf
-            tau = [0 pop(p,:) 0];
-            total_dist(p) = backwardExpectedDistance(instance, tau, 0, instance.Q);
+            total_dist(p) = backwardExpectedDistance([0 pop(p,:)], instance);
         else
             total_dist(p) = pop(p).expected_distance;
         end
@@ -90,10 +90,10 @@ while ((iter < num_iter) && gain > epsilon)
     % Find the Best Route in the Population
     [min_dist,index] = min(total_dist);
     dist_history(iter) = min_dist;
-    gain = (global_min-min_dist)/global_min;
+    gain = (global_min-min_dist)/global_min; % Inf/Inf
     if min_dist < global_min
         global_min = min_dist;
-        opt_rte = pop(index,:);        
+        opt_rte = pop(index,:);
         if show_prog && (iter == 1 || iter == floor(iter/4) || iter == floor(iter/2) || floor(3*iter/4) )
             % Plot the Best Route
             figure(pfig);
@@ -105,30 +105,31 @@ while ((iter < num_iter) && gain > epsilon)
         end
     end
 
-    % Genetic Algorithm Operators
-    rand_pair = randperm(pop_size);
-    for p = 4:4:pop_size
-        rtes = pop(rand_pair(p-3:p),:);
-        dists = total_dist(rand_pair(p-3:p));
-        [ignore,idx] = min(dists);
-        best_of_4_rte = rtes(idx,:);
-        ins_pts = sort(ceil(n*rand(1,2)));
-        I = ins_pts(1);
-        J = ins_pts(2);
-        for k = 1:4 % Mutate the Best to get Three New Routes
-            tmp_pop(k,:) = best_of_4_rte;
-            switch k
-                case 2 % Flip
-                    tmp_pop(k,I:J) = fliplr(tmp_pop(k,I:J));
-                case 3 % Swap
-                    tmp_pop(k,[I J]) = tmp_pop(k,[J I]);
-                case 4 % Slide
-                    tmp_pop(k,I:J) = tmp_pop(k,[I+1:J I]);
-                otherwise % Do Nothing
+    % Genetic Algorithm Operators - Mutation
+    rand_pair = randperm(pop_size);%random selection of individuals to mutate
+    %define number of individuals to mutate (<= pop_size)
+    %probability of mutation p_m
+    p_m = 0.5;
+    if (rand() <= p_m)        
+        for p = 1:ceil(randi(pop_size,1)*rand())
+            rtes = pop(rand_pair(p-3:p),:);
+            dists = total_dist(rand_pair(p-3:p));
+            [ignore,idx] = min(dists);
+            best_of_4_rte = rtes(idx,:);
+
+            for k = 1:4 % Mutate the Best to get Three New Routes
+                tmp_pop(k,:) = best_of_4_rte;
+
             end
-        end
-        new_pop(p-3:p,:) = tmp_pop;
+            new_pop(p-3:p,:) = tmp_pop;
+        end        
     end
+    
+    % Genetic Algorithm Operators - Crossover
+    
+    % Local search
+    
+    % selection
     pop = new_pop;
     if(gain < epsilon)
         cnEpsilon = cnEpsilon + 1;
