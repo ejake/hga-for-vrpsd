@@ -644,3 +644,12 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 
 %initialize population
 pop = initPopulationCyclic(n, n);
+
+
+%% Testing mutation
+%distribution of number of individuals mutated
+dis_pm = zeros(1,1000);
+for k=1:1000
+    dis_pm(k) = ceil(randi(150,1)*rand());
+end
+hist(dis_pm);

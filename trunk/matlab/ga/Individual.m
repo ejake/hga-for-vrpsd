@@ -3,7 +3,7 @@ classdef Individual
     %   Detailed explanation goes here
     
     properties
-        tour = []; 
+        tour = []; % no include depot
         policy = [];
         rolledout = logical(0);
         expected_distance = Inf;

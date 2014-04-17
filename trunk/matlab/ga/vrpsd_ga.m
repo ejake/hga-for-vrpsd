@@ -56,6 +56,7 @@ end
 cnEpsilon = 0;
 gain = Inf;
 offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
+offspring_counter = 0;
 new_pop = Individual.empty(pop_size,0);
 global_min = Inf;
 total_dist = zeros(1,pop_size);
@@ -75,16 +76,16 @@ for i=1:n
 end
 offspring_pop(1) = Individual();
 offspring_pop(1).policy = pi;
+offspring_counter = offspring_counter+1;
 
 iter = 0;
 while ((iter < num_iter) && gain > epsilon) % stopping criterion
     % Evaluate Each Population Member (Calculate Expected Distance)
     for p = 1:pop_size
         if pop(p).expected_distance == Inf
-            total_dist(p) = backwardExpectedDistance([0 pop(p,:)], instance);
-        else
-            total_dist(p) = pop(p).expected_distance;
+            total_dist(p).expected_distance = backwardExpectedDistance([0 pop(p,:)], instance);            
         end
+        total_dist(p) = pop(p).expected_distance;
     end
 
     % Find the Best Route in the Population
@@ -110,9 +111,9 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
     %define number of individuals to mutate (<= pop_size)
     %probability of mutation p_m
     p_m = 0.5;
-    if (rand() <= p_m)        
-        for p = 1:ceil(randi(pop_size,1)*rand())
-            rtes = pop(rand_pair(p-3:p),:);
+    if (rand() <= p_m)
+        for p = 1:ceil(randi(pop_size-1,1)*rand())% # individuals to mutate
+            rtes = pop(p).tour;
             dists = total_dist(rand_pair(p-3:p));
             [ignore,idx] = min(dists);
             best_of_4_rte = rtes(idx,:);
