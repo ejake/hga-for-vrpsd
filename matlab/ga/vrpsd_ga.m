@@ -74,16 +74,16 @@ for i=1:n
     pop(i).expected_distance = cyEd(i);
     pop(i).rolledout = true;
 end
-offspring_pop(1) = Individual();
-offspring_pop(1).policy = pi;
 offspring_counter = offspring_counter+1;
+offspring_pop(offspring_counter) = Individual();
+offspring_pop(offspring_counter).policy = pi;
 
 iter = 0;
 while ((iter < num_iter) && gain > epsilon) % stopping criterion
     % Evaluate Each Population Member (Calculate Expected Distance)
     for p = 1:pop_size
         if pop(p).expected_distance == Inf
-            total_dist(p).expected_distance = backwardExpectedDistance([0 pop(p,:)], instance);            
+            pop(p).expected_distance = backwardExpectedDistance([0 pop(p).tour], instance);            
         end
         total_dist(p) = pop(p).expected_distance;
     end
@@ -112,22 +112,29 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
     %probability of mutation p_m
     p_m = 0.5;
     if (rand() <= p_m)
-        for p = 1:ceil(randi(pop_size-1,1)*rand())% # individuals to mutate
-            rtes = pop(p).tour;
-            dists = total_dist(rand_pair(p-3:p));
-            [ignore,idx] = min(dists);
-            best_of_4_rte = rtes(idx,:);
-
-            for k = 1:4 % Mutate the Best to get Three New Routes
-                tmp_pop(k,:) = best_of_4_rte;
-
-            end
-            new_pop(p-3:p,:) = tmp_pop;
+        for p = 1:ceil(randi(pop_size-1,1)*rand())% # individuals to mutate                        
+            offspring_counter = offspring_counter+1;
+            offspring_pop(offspring_counter) = Individual();
+            offspring_pop(offspring_counter).tour = mutation(randi([1 4],1), ...
+                pop(rand_pair(p)).tour);            
         end        
-    end
-    
+    end    
     % Genetic Algorithm Operators - Crossover
-    
+    rand_pair = randperm(pop_size);%random selection of individuals to crossover
+    %# of crossovers
+    n_c = ceil(pop_size/4 * rand() ); %maximun 1/4 population
+    for p = 1: n_c
+        dists = total_dist( rand_pair(((pop_size/n_c)*(p-1)+1):(pop_size/n_c)*p));
+        %parent (a)
+        [ignore,idx] = min(dists(1:ceil(length(dists)/2)));
+        idx_pa = (pop_size/n_c)*(p-1)+idx; %index in population, i.e. pop(idx_pa)
+        %parent (b)
+        [ignore,idx] = min(dists(ceil(length(dists)/2) + 1:length(dists)));
+        idx_pb = (pop_size/n_c)*(p-1)+(idx + ceil(length(dists)/2)); %index in population, i.e. pop(idx_pb)
+        offspring_counter = offspring_counter+1;
+        offspring_pop(offspring_counter) = Individual();
+        offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
+    end
     % Local search
     
     % selection

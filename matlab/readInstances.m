@@ -653,3 +653,12 @@ for k=1:1000
     dis_pm(k) = ceil(randi(150,1)*rand());
 end
 hist(dis_pm);
+
+%% Testing crossover
+%distribution of number of crossovers
+dis_pm = zeros(1,100000);
+for k=1:100000
+    dis_pm(k) = ceil(50/2*rand());
+end
+hist(dis_pm);
+
