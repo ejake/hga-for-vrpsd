@@ -57,6 +57,7 @@ cnEpsilon = 0;
 gain = Inf;
 offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
 offspring_counter = 0;
+offspring_dist = zeros(1,pop_size);% expected distance of offspring
 new_pop = Individual.empty(pop_size,0);
 global_min = Inf;
 total_dist = zeros(1,pop_size);
@@ -135,8 +136,22 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
         offspring_pop(offspring_counter) = Individual();
         offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
     end
-    % Local search
+    %asses fitness of offspring
     
+    for p = 1:offspring_counter
+        if offspring_pop(p).expected_distance == Inf
+            offspring_pop(p).expected_distance = backwardExpectedDistance([0 offspring_pop(p).tour], instance);
+        end
+        offspring_dist(p) = pop(p).expected_distance;
+    end
+    % Local search    
+    % Rollout best tour in offspring
+    [ignore,idx] = min(offspring_dist);
+    if offspring_pop(idx).rolledout == false
+        [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
+    end
+    
+        
     % selection
     pop = new_pop;
     if(gain < epsilon)
