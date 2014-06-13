@@ -642,9 +642,7 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 % GA implementation combining RA
 % (7/4/2014)
 
-%initialize population
-pop = initPopulationCyclic(n, n);
-
+[pi_ga ed_ga] = vrpsd_ga(instance, instance.n, 3, 0.01, 0, 1);
 
 %% Testing mutation
 %distribution of number of individuals mutated

@@ -16,6 +16,7 @@ classdef Individual
                 obj.tour = zeros(1,n);
             end
         end
+        
         function obj = setTourOfPolicy( obj )
             obj.tour = zeros(1,length(obj.policy));
             for i=1:length(obj.policy)
