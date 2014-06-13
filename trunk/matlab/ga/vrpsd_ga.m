@@ -41,7 +41,7 @@ if n ~= (nr-1) || n ~= (nc-1)
 end
 
 % Sanity Checks
-pop_size = 4*ceil(pop_size/4);
+pop_size = floor(pop_size);
 num_iter = round(real(num_iter(1)));
 show_prog = logical(show_prog(1));
 show_res = logical(show_res(1));
@@ -58,7 +58,6 @@ gain = Inf;
 offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
 offspring_counter = 0;
 offspring_dist = zeros(1,pop_size);% expected distance of offspring
-new_pop = Individual.empty(pop_size,0);
 global_min = Inf;
 total_dist = zeros(1,pop_size);
 dist_history = zeros(1,num_iter);
@@ -78,9 +77,11 @@ end
 offspring_counter = offspring_counter+1;
 offspring_pop(offspring_counter) = Individual();
 offspring_pop(offspring_counter).policy = pi;
+offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
 
 iter = 0;
 while ((iter < num_iter) && gain > epsilon) % stopping criterion
+    iter = iter + 1;
     % Evaluate Each Population Member (Calculate Expected Distance)
     for p = 1:pop_size
         if pop(p).expected_distance == Inf
@@ -95,7 +96,7 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
     gain = (global_min-min_dist)/global_min; % Inf/Inf
     if min_dist < global_min
         global_min = min_dist;
-        opt_rte = pop(index,:);
+        opt_rte = pop(index);
         if show_prog && (iter == 1 || iter == floor(iter/4) || iter == floor(iter/2) || floor(3*iter/4) )
             % Plot the Best Route
             figure(pfig);
@@ -128,10 +129,10 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
         dists = total_dist( rand_pair(((pop_size/n_c)*(p-1)+1):(pop_size/n_c)*p));
         %parent (a)
         [ignore,idx] = min(dists(1:ceil(length(dists)/2)));
-        idx_pa = (pop_size/n_c)*(p-1)+idx; %index in population, i.e. pop(idx_pa)
+        idx_pa = rand_pair((pop_size/n_c)*(p-1)+idx); %index in population, i.e. pop(idx_pa)
         %parent (b)
         [ignore,idx] = min(dists(ceil(length(dists)/2) + 1:length(dists)));
-        idx_pb = (pop_size/n_c)*(p-1)+(idx + ceil(length(dists)/2)); %index in population, i.e. pop(idx_pb)
+        idx_pb = rand_pair((pop_size/n_c)*(p-1)+(idx + ceil(length(dists)/2))); %index in population, i.e. pop(idx_pb)
         offspring_counter = offspring_counter+1;
         offspring_pop(offspring_counter) = Individual();
         offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
@@ -144,16 +145,41 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
         end
         offspring_dist(p) = pop(p).expected_distance;
     end
-    % Local search    
+    
+    % Local search
     % Rollout best tour in offspring
-    [ignore,idx] = min(offspring_dist);
+    [ignore,idx] = min(offspring_dist(1:offspring_counter));
     if offspring_pop(idx).rolledout == false
         [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
+        offspring_counter = offspring_counter + 1;
+        offspring_pop(offsrepring_counter) = Individual();
+        offspring_pop(offspring_counter).policy = pi;
+        offspring_pop(offspring_counter).setTourOfPolicy();
     end
     
-        
-    % selection
-    pop = new_pop;
+    %selection
+    
+    %compute size of new population
+    new_pop_size = pop_size;%pending
+    if new_pop_size > pop_size
+        %resize pop and offspring
+    end    
+    pop_size = new_pop_size;
+    %new population:
+    for p = 1: offspring_counter
+        pop(p) = offspring_pop(p);
+    end
+    %complete new population with cyEd of offspring
+    i = 1;
+    tau = offspring_pop(idx).tour;
+    for p = offspring_counter+1: min(pop_size,instance.n)
+        pop(p) = Individual();
+        pop(p).expected_distance = cyEd(i);
+        pop(p).tour = tau;
+        tau = circshift(tau, [1,1]);
+        i = i+1;
+    end
+    
     if(gain < epsilon)
         cnEpsilon = cnEpsilon + 1;
         if(cnEpsilon > num_iter*0.1)
