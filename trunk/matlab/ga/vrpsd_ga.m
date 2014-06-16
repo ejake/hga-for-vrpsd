@@ -1,4 +1,4 @@
-function [opt_pol min_exp] = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alpha, show_prog,show_res)
+function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alpha, show_prog,show_res)
 %VRPSD_GA Vehilce Routing Problem Whit Stochastic Demands (VRPSD) Genetic Algorithm (GA)
 %   Finds a (near) optimal solution to the VRPSD by setting up a GA to search
 %   for the shortest route (least expected distance for the vehicle to travel to
@@ -35,167 +35,168 @@ function [opt_pol min_exp] = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, 
 % Release Date: 3/6/08
 
 
-% Verify Inputs
-n = instance.n;
-[nr,nc] = size(instance.d);
-if n ~= (nr-1) || n ~= (nc-1)
-    error('Invalid instance inputs (distance)!')
-end
-
-% Sanity Checks
-pop_size = floor(pop_size);
-num_iter = round(real(num_iter(1)));
-show_prog = logical(show_prog(1));
-show_res = logical(show_res(1));
-
-% Initialize the Population
-pop = initPopulationCyclic(pop_size, n); %if pop_size >= n, pop_size - n individuals would be repeated
-
-% Run the GA
-if epsilon <= 0
-    epsilon = 0.0000001;
-end
-cnEpsilon = 0;
-gain = Inf;
-offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
-offspring_counter = 0;
-offspring_dist = zeros(1,pop_size);% expected distance of offspring
-global_min = Inf;
-total_dist = zeros(1,pop_size);
-dist_history = zeros(1,num_iter);
-
-if show_prog
-    pfig = figure('Name','Current Best Solution','Numbertitle','off');
-    count_subplot =1;
-end
-
-%Apply RA to a member of population
-[pi cyEd]  = rollout (instance, State(instance.n, instance.Q), pop(1).tour);
-%if cyclic heuristic is used  in RA expected distance is already computed
-for i=1:n
-    pop(i).expected_distance = cyEd(i);
-    pop(i).rolledout = true;
-end
-offspring_counter = offspring_counter+1;
-offspring_pop(offspring_counter) = Individual();
-offspring_pop(offspring_counter).policy = pi;
-offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
-
-iter = 0;
-
-while ((iter < num_iter) && gain > epsilon) % stopping criterion
-    iter = iter + 1;
-    % Evaluate Each Population Member (Calculate Expected Distance)
-    for p = 1:pop_size
-        if pop(p).expected_distance == Inf
-            pop(p).expected_distance = backwardExpectedDistance([0 pop(p).tour], instance);            
-        end
-        total_dist(p) = pop(p).expected_distance;
+    % Verify Inputs
+    n = instance.n;
+    [nr,nc] = size(instance.d);
+    if n ~= (nr-1) || n ~= (nc-1)
+        error('Invalid instance inputs (distance)!')
     end
 
-    % Find the Best Route in the Population
-    [min_dist,index] = min(total_dist);
-    dist_history(iter) = min_dist;
-    gain = (global_min-min_dist)/global_min; % Inf/Inf
-    if min_dist < global_min
-        global_min = min_dist;
-        opt_rte = pop(index);
-        if show_prog && (iter == 1 || iter == floor(iter/4) || iter == floor(iter/2) || floor(3*iter/4) )
-            % Plot the Best Route
-            figure(pfig);
-            subplot(1,4,count_subplot);
-            % imagesc(dmat(opt_rte,opt_rte))
-            imagesc(pop);            
-            title(sprintf('Total Distance = %1.4f, Iteration = %d',min_dist,iter));
-            count_subplot = count_subplot+1;
-        end
+    % Sanity Checks
+    pop_size = floor(pop_size);
+    num_iter = round(real(num_iter(1)));
+    show_prog = logical(show_prog(1));
+    show_res = logical(show_res(1));
+
+    % Initialize the Population
+    pop = initPopulationCyclic(pop_size, n); %if pop_size >= n, pop_size - n individuals would be repeated
+
+    if epsilon <= 0
+        epsilon = 0.001;
+    end
+    cnEpsilon = 0;
+
+    gain = Inf;
+    offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
+    offspring_counter = 0;
+    offspring_dist = zeros(1,pop_size);% expected distance of offspring
+    global_min = Inf;
+    total_dist = zeros(1,pop_size);
+    dist_history = zeros(1,num_iter);
+
+    if show_prog
+        pfig = figure('Name','Current Best Solution','Numbertitle','off');
+        count_subplot =1;
     end
 
-    % Genetic Algorithm Operators - Mutation
-    rand_pair = randperm(pop_size);%random selection of individuals to mutate
-    %define number of individuals to mutate (<= pop_size)
-    %probability of mutation p_m
-    if (rand() <= p_m)
-        for p = 1:ceil(randi(pop_size-1,1)*rand())% # individuals to mutate                        
+    %Apply RA to a member of population
+    [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), pop(1).tour);
+    %if cyclic heuristic is used  in RA expected distance is already computed
+    for i=1:n
+        pop(i).expected_distance = cyEd(i);
+        pop(i).rolledout = true;
+    end
+    offspring_counter = offspring_counter+1;
+    offspring_pop(offspring_counter) = Individual();
+    offspring_pop(offspring_counter).policy = pi;
+    offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+
+    iter = 0;
+
+    while ((iter < num_iter) && gain > epsilon) % stopping criterion
+        iter = iter + 1;
+        % Evaluate Each Population Member (Calculate Expected Distance)
+        for p = 1:pop_size
+            if pop(p).expected_distance == Inf
+                pop(p).expected_distance = backwardExpectedDistance([0 pop(p).tour], instance);            
+            end
+            total_dist(p) = pop(p).expected_distance;
+        end
+
+        % Find the Best Route in the Population
+        [min_dist,index] = min(total_dist);
+        dist_history(iter) = min_dist;
+        gain = (global_min-min_dist)/global_min; % Inf/Inf
+        if min_dist < global_min
+            global_min = min_dist;
+            opt_rte = pop(index);
+            if show_prog && (iter == 1 || iter == floor(iter/4) || iter == floor(iter/2) || floor(3*iter/4) )
+                % Plot the Best Route
+                figure(pfig);
+                subplot(1,4,count_subplot);
+                % imagesc(dmat(opt_rte,opt_rte))
+                imagesc(pop);            
+                title(sprintf('Total Distance = %1.4f, Iteration = %d',min_dist,iter));
+                count_subplot = count_subplot+1;
+            end
+        end
+
+        % Genetic Algorithm Operators - Mutation
+        rand_pair = randperm(pop_size);%random selection of individuals to mutate
+        %define number of individuals to mutate (<= pop_size)
+        %probability of mutation p_m
+        if (rand() <= p_m)
+            for p = 1:ceil(randi(pop_size-1,1)*rand())% # individuals to mutate                        
+                offspring_counter = offspring_counter+1;
+                offspring_pop(offspring_counter) = Individual();
+                offspring_pop(offspring_counter).tour = mutation(randi([1 4],1), ...
+                    pop(rand_pair(p)).tour);            
+            end        
+        end    
+        % Genetic Algorithm Operators - Crossover
+        rand_pair = randperm(pop_size);%random selection of individuals to crossover
+        %# of crossovers
+        n_c = ceil(pop_size/4 * rand() ); %maximun 1/4 population
+        for p = 1: n_c
+            dists = total_dist( rand_pair(((pop_size/n_c)*(p-1)+1):(pop_size/n_c)*p));
+            %parent (a)
+            [ignore,idx] = min(dists(1:ceil(length(dists)/2)));
+            idx_pa = rand_pair((pop_size/n_c)*(p-1)+idx); %index in population, i.e. pop(idx_pa)
+            %parent (b)
+            [ignore,idx] = min(dists(ceil(length(dists)/2) + 1:length(dists)));
+            idx_pb = rand_pair((pop_size/n_c)*(p-1)+(idx + ceil(length(dists)/2))); %index in population, i.e. pop(idx_pb)
             offspring_counter = offspring_counter+1;
             offspring_pop(offspring_counter) = Individual();
-            offspring_pop(offspring_counter).tour = mutation(randi([1 4],1), ...
-                pop(rand_pair(p)).tour);            
-        end        
-    end    
-    % Genetic Algorithm Operators - Crossover
-    rand_pair = randperm(pop_size);%random selection of individuals to crossover
-    %# of crossovers
-    n_c = ceil(pop_size/4 * rand() ); %maximun 1/4 population
-    for p = 1: n_c
-        dists = total_dist( rand_pair(((pop_size/n_c)*(p-1)+1):(pop_size/n_c)*p));
-        %parent (a)
-        [ignore,idx] = min(dists(1:ceil(length(dists)/2)));
-        idx_pa = rand_pair((pop_size/n_c)*(p-1)+idx); %index in population, i.e. pop(idx_pa)
-        %parent (b)
-        [ignore,idx] = min(dists(ceil(length(dists)/2) + 1:length(dists)));
-        idx_pb = rand_pair((pop_size/n_c)*(p-1)+(idx + ceil(length(dists)/2))); %index in population, i.e. pop(idx_pb)
-        offspring_counter = offspring_counter+1;
-        offspring_pop(offspring_counter) = Individual();
-        offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
-    end
-    %asses fitness of offspring
-    
-    for p = 1:offspring_counter
-        if offspring_pop(p).expected_distance == Inf
-            offspring_pop(p).expected_distance = backwardExpectedDistance([0 offspring_pop(p).tour], instance);
+            offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
         end
-        offspring_dist(p) = pop(p).expected_distance;
-    end
-    
-    % Local search
-    % Rollout best tour in offspring
-    [ignore,idx] = min(offspring_dist(1:offspring_counter));
-    if offspring_pop(idx).rolledout == false
-        [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
-        offspring_counter = offspring_counter + 1;
-        offspring_pop(offspring_counter) = Individual();
-        offspring_pop(offspring_counter).policy = pi;
-        offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
-    end
-    
-    %selection
-    
-    %compute size of new population
-    new_pop_size = pop_size;%pending
-    if new_pop_size > pop_size
-        %resize pop and offspring
-    end    
-    pop_size = new_pop_size;
-    %new population:
-    for p = 1: offspring_counter
-        pop(p) = offspring_pop(p);
-    end
-    %complete new population with cyEd of offspring
-    %Review: offspring_pop(idx).tour is reapeated in this process
-    i = 1;
-    tau = offspring_pop(idx).tour;
-    for p = offspring_counter+1: min(pop_size,instance.n)
-        pop(p) = Individual();
-        pop(p).expected_distance = cyEd(i);
-        pop(p).tour = tau;
-        tau = circshift(tau, [1,1]);
-        i = i+1;
-    end
-    
-    if(gain < epsilon)
-        cnEpsilon = cnEpsilon + 1;
-        if(cnEpsilon > num_iter*0.1)
-            showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
-            return
+        %asses fitness of offspring
+
+        for p = 1:offspring_counter
+            if offspring_pop(p).expected_distance == Inf
+                offspring_pop(p).expected_distance = backwardExpectedDistance([0 offspring_pop(p).tour], instance);
+            end
+            offspring_dist(p) = pop(p).expected_distance;
         end
-    end 
-end
-    showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
-% Return Outputs
-%if nargout
-%    varargout{1} = opt_rte;
-%    varargout{2} = min_dist;
+
+        % Local search
+        % Rollout best tour in offspring
+        [ignore,idx] = min(offspring_dist(1:offspring_counter));
+        if offspring_pop(idx).rolledout == false
+            [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
+            offspring_counter = offspring_counter + 1;
+            offspring_pop(offspring_counter) = Individual();
+            offspring_pop(offspring_counter).policy = pi;
+            offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+        end
+
+        %selection
+
+        %compute size of new population
+        new_pop_size = pop_size;%pending
+        if new_pop_size > pop_size
+            %resize pop and offspring
+        end    
+        pop_size = new_pop_size;
+        %new population:
+        for p = 1: offspring_counter
+            pop(p) = offspring_pop(p);
+        end
+        %complete new population with cyEd of offspring
+        %Review: offspring_pop(idx).tour is reapeated in this process
+        i = 1;
+        tau = offspring_pop(idx).tour;
+        for p = offspring_counter+1: min(pop_size,instance.n)
+            pop(p) = Individual();
+            pop(p).expected_distance = cyEd(i);
+            pop(p).tour = tau;
+            tau = circshift(tau, [1,1]);
+            i = i+1;
+        end
+
+        if(gain < epsilon)
+            cnEpsilon = cnEpsilon + 1;
+            if(cnEpsilon > num_iter*0.1)
+                showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
+                return
+            end
+        end 
+    end
+        showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
+    % Return Outputs
+    if nargout
+        varargout{1} = opt_rte;
+        varargout{2} = min_dist;
+    end
 end
 
 function showResults(show_res,instance, opt_rte, min_dist, num_iter,pop, dist_history)
