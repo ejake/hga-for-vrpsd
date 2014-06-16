@@ -1,4 +1,4 @@
-function [opt_pol min_exp] = vrpsd_ga(instance,pop_size,num_iter,epsilon,show_prog,show_res)
+function [opt_pol min_exp] = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alpha, show_prog,show_res)
 %VRPSD_GA Vehilce Routing Problem Whit Stochastic Demands (VRPSD) Genetic Algorithm (GA)
 %   Finds a (near) optimal solution to the VRPSD by setting up a GA to search
 %   for the shortest route (least expected distance for the vehicle to travel to
@@ -6,9 +6,11 @@ function [opt_pol min_exp] = vrpsd_ga(instance,pop_size,num_iter,epsilon,show_pr
 %
 % Input:
 %     INSTANCE (object instance)     
-%     POP_SIZE (scalar integer) is the size of the population (should be divisible by 4)
+%     POP_SIZE (scalar integer) is the size of the population
 %     NUM_ITER (scalar integer) is the number of desired iterations for the algorithm to run
-%     EPSILON
+%     epsilon (fraction)
+%     m (fraction) percentage of iterations without change
+%     alpha (fraction)
 %     SHOW_PROG (scalar logical) shows the GA progress if true
 %     SHOW_RES (scalar logical) shows the GA results if true
 %
@@ -80,6 +82,7 @@ offspring_pop(offspring_counter).policy = pi;
 offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
 
 iter = 0;
+
 while ((iter < num_iter) && gain > epsilon) % stopping criterion
     iter = iter + 1;
     % Evaluate Each Population Member (Calculate Expected Distance)
@@ -112,7 +115,6 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
     rand_pair = randperm(pop_size);%random selection of individuals to mutate
     %define number of individuals to mutate (<= pop_size)
     %probability of mutation p_m
-    p_m = 0.5;
     if (rand() <= p_m)
         for p = 1:ceil(randi(pop_size-1,1)*rand())% # individuals to mutate                        
             offspring_counter = offspring_counter+1;
@@ -152,9 +154,9 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
     if offspring_pop(idx).rolledout == false
         [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
         offspring_counter = offspring_counter + 1;
-        offspring_pop(offsrepring_counter) = Individual();
+        offspring_pop(offspring_counter) = Individual();
         offspring_pop(offspring_counter).policy = pi;
-        offspring_pop(offspring_counter).setTourOfPolicy();
+        offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
     end
     
     %selection
@@ -170,6 +172,7 @@ while ((iter < num_iter) && gain > epsilon) % stopping criterion
         pop(p) = offspring_pop(p);
     end
     %complete new population with cyEd of offspring
+    %Review: offspring_pop(idx).tour is reapeated in this process
     i = 1;
     tau = offspring_pop(idx).tour;
     for p = offspring_counter+1: min(pop_size,instance.n)
