@@ -1,21 +1,22 @@
-% Read all files an run exact expected distance (only for small instances)
+% Read all files an run exact expected distance (for all instances)
+% 30/8/2014
 clear all;
 % -- Create output file
-outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
-outputFile = 'exdist_outcome_20131001.csv';
+outputPath = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/';
+outputFile = 'exdist_instance_20140830.csv';
 outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
 fprintf(oFile,'Outcomes expected distance algorithms (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
-fprintf(oFile,'instance;n;time exhaustive alg;time recursive alg; time dp alg; tour;Q;average distance;expected distance; dp expected distance\r\n');
+fprintf(oFile,'instance;n;time compute expected distance; tour;Q;expected distance; mean demand; min demand; max demand\r\n');
 % ---
 % -- Specify location of input data (instances) 
 %Windows:
 %path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
 %path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
 %Linux:
-path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
-path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
+path_wildchar = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
+path = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
 listing = dir(path_wildchar);
 for i=1:length(listing)    
     % -- Read instance file
@@ -42,27 +43,8 @@ for i=1:length(listing)
     %load instance object
     instance = InstanceVrpsd(n, f, DD, LL);
     % ---
-    % Asses expected distance
-    pi = [];
-    for k=1: instance.n
-        pi = [pi Control(k,0)];
-    end    
-    tic;
-    if instance.n == 5
-        [frecD disD allDis] = distanceDistribution5n(pi, instance, 0);
-    end
-    if instance.n == 8
-        [frecD disD allDis] = distanceDistribution8n(pi, instance, 1);
-    end
-    timeSpent = toc;    
-    avgDist = mean(allDis);
-    %avgDist = sum(frecD.*disD)/sum(frecD);
-    % ---
-    % Asses expected distance with recursive algorithm
-    tic;
-    expd = gammaBackwardEd(0,instance.Q,instance);
-    timeSpent2 = toc;
-    % ---
+    % Asses expected distance    
+    % ---    
     % Asses dp algorithm to expected distance with memorization
     tour = 0:instance.n;
     tic;
@@ -70,18 +52,17 @@ for i=1:length(listing)
     timeSpent3 = toc;
     % -- Write results in a output file
     fprintf(oFile, '%s;',listing(i).name);
-    fprintf(oFile, ' %i',instance.n);
-    fprintf(oFile, '%10.2f;',timeSpent);
-    fprintf(oFile, '%10.2f;',timeSpent2);
+    fprintf(oFile, ' %i;',instance.n);
     fprintf(oFile, '%10.2f;',timeSpent3);
-    for k=1: (length(pi))
-        fprintf(oFile, ' %i',pi(k).m);
+    for k=1: (length(tour))
+        fprintf(oFile, ' %i',tour(k));
     end
     fprintf(oFile, ';');
     fprintf(oFile, ' %i;',instance.Q);
-    fprintf(oFile, ' %6.6f;',avgDist);
-    fprintf(oFile, ' %6.6f;',expd);
     fprintf(oFile, ' %6.6f;',bed);
+    fprintf(oFile, ' %6.6f;',mean((DD(:,1)+DD(:,2))/2));
+    fprintf(oFile, ' %6.6f;',min(DD(:,1)));
+    fprintf(oFile, ' %6.6f;',max(DD(:,2)));
     fprintf(oFile,'\r\n');
     % ---
 end
@@ -426,7 +407,8 @@ clear all;
 %Windows:
 %fid=fopen('D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\i_5r1.dat', 'rt');
 %Linux:
-fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
+fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
+%fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_5r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_8r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_20r2.dat', 'rt');
