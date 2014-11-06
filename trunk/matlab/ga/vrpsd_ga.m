@@ -43,8 +43,6 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     end
 
     % Sanity Checks
-    pop_size = floor(pop_size);
-    num_iter = round(real(num_iter(1)));
     show_prog = logical(show_prog(1));
     show_res = logical(show_res(1));
 
@@ -56,6 +54,8 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     end
     cnEpsilon = 0;
 
+    local_search = FALSE;
+    
     gain = Inf;
     offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
     offspring_counter = 0;
@@ -69,20 +69,23 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         count_subplot =1;
     end
 
-    %Apply RA to a member of population
-    [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), pop(1).tour);
-    %if cyclic heuristic is used  in RA expected distance is already computed
-    for i=1:n
-        pop(i).expected_distance = cyEd(i);
-        pop(i).rolledout = true;
+    if local_search
+        %Apply RA to a member of population
+        [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), pop(1).tour);
+        %if cyclic heuristic is used  in RA expected distance is already computed
+        for i=1:n
+            pop(i).expected_distance = cyEd(i);
+            pop(i).rolledout = true;
+        end
+        %Add to offspring policy rolled out
+        offspring_counter = offspring_counter+1;
+        offspring_pop(offspring_counter) = Individual();
+        offspring_pop(offspring_counter).policy = pi;
+        offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
     end
-    offspring_counter = offspring_counter+1;
-    offspring_pop(offspring_counter) = Individual();
-    offspring_pop(offspring_counter).policy = pi;
-    offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+       
 
     iter = 0;
-
     while ((iter < num_iter) && gain > epsilon) % stopping criterion
         iter = iter + 1;
         % Evaluate Each Population Member (Calculate Expected Distance)
@@ -149,17 +152,20 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         end
 
         % Local search
-        % Rollout best tour in offspring
-        [ignore,idx] = min(offspring_dist(1:offspring_counter));
-        if offspring_pop(idx).rolledout == false
-            [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
-            offspring_counter = offspring_counter + 1;
-            offspring_pop(offspring_counter) = Individual();
-            offspring_pop(offspring_counter).policy = pi;
-            offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+        if local_search
+            % Rollout best tour in offspring
+            [ignore,idx] = min(offspring_dist(1:offspring_counter));
+            if offspring_pop(idx).rolledout == false
+                [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
+                offspring_counter = offspring_counter + 1;
+                offspring_pop(offspring_counter) = Individual();
+                offspring_pop(offspring_counter).policy = pi;
+                offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+            end
         end
 
         %selection
+        %Building new population
 
         %compute size of new population
         new_pop_size = pop_size;%pending
@@ -173,14 +179,27 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         end
         %complete new population with cyEd of offspring
         %Review: offspring_pop(idx).tour is reapeated in this process
-        i = 1;
-        tau = offspring_pop(idx).tour;
-        for p = offspring_counter+1: min(pop_size,instance.n)
-            pop(p) = Individual();
-            pop(p).expected_distance = cyEd(i);
-            pop(p).tour = tau;
-            tau = circshift(tau, [1,1]);
-            i = i+1;
+        if local_search
+            i = 1;
+            tau = offspring_pop(idx).tour;
+            for p = offspring_counter+1: min(pop_size,instance.n)
+                pop(p) = Individual();
+                pop(p).expected_distance = cyEd(i);
+                pop(p).tour = tau;
+                tau = circshift(tau, [1,1]);
+                i = i+1;
+            end
+        else
+            %best tour in offspring
+            [ignore,idx] = min(offspring_dist(1:offspring_counter));
+            i = 1;
+            tau = offspring_pop(idx).tour;
+            for p = offspring_counter+1: min(pop_size,instance.n)
+                pop(p) = Individual();                
+                pop(p).tour = tau;
+                tau = circshift(tau, [1,1]);
+                i = i+1;
+            end
         end
 
         if(gain < epsilon)
