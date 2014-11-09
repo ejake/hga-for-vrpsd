@@ -9,7 +9,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
 %     POP_SIZE (scalar integer) is the size of the population
 %     NUM_ITER (scalar integer) is the number of desired iterations for the algorithm to run
 %     epsilon (fraction)
-%     m (fraction) percentage of iterations without change
+%     m (fraction) percentage (or number) of iterations without change
 %     alpha (fraction)
 %     SHOW_PROG (scalar logical) shows the GA progress if true
 %     SHOW_RES (scalar logical) shows the GA results if true
@@ -54,9 +54,12 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     end
     cnEpsilon = 0;
 
-    local_search = FALSE;
+    local_search = false;
     
     gain = Inf;
+    gain_relative = 0; %|f(k)-f(k-1)\f(k-1)|
+    rate_change = 0;
+    m_change = 0; %number of generation whiout significative change in fitness function
     offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
     offspring_counter = 0;
     offspring_dist = zeros(1,pop_size);% expected distance of offspring
@@ -86,8 +89,9 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
        
 
     iter = 0;
-    while ((iter < num_iter) && gain > epsilon) % stopping criterion
+    while ((iter < num_iter) && m >= m_change) % stopping criterion
         iter = iter + 1;
+        fprintf('Iteracion %i\n', iter);
         % Evaluate Each Population Member (Calculate Expected Distance)
         for p = 1:pop_size
             if pop(p).expected_distance == Inf
@@ -99,7 +103,23 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         % Find the Best Route in the Population
         [min_dist,index] = min(total_dist);
         dist_history(iter) = min_dist;
-        gain = (global_min-min_dist)/global_min; % Inf/Inf
+        
+        %fitness gain regarded to global min
+        if global_min == Inf
+            gain = min_dist;
+        else
+            gain = max((global_min-min_dist)/global_min, 0);
+        end
+        if iter > 1
+            gain_relative = max((dist_history(iter-1)-min_dist)/dist_history(iter-1),0);
+            rate_change = abs((dist_history(iter-1)-min_dist)/dist_history(iter-1));
+            %no significative change
+            if rate_change < epsilon
+                m_change = m_change + 1;
+            end
+        end
+        
+        %upgrade global min
         if min_dist < global_min
             global_min = min_dist;
             opt_rte = pop(index);
@@ -113,6 +133,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
                 count_subplot = count_subplot+1;
             end
         end
+        
 
         % Genetic Algorithm Operators - Mutation
         rand_pair = randperm(pop_size);%random selection of individuals to mutate
