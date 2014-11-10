@@ -150,7 +150,12 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         % Genetic Algorithm Operators - Crossover
         rand_pair = randperm(pop_size);%random selection of individuals to crossover
         %# of crossovers
-        n_c = ceil(pop_size/4 * rand() ); %maximun 1/4 population
+        if local_search
+            n_c = ceil(pop_size/4 * rand() ); %maximun 1/4 population
+        else
+            n_c = ceil(pop_size * rand() ); %maximun the population
+        end
+        
         for p = 1: n_c
             dists = total_dist( rand_pair(((pop_size/n_c)*(p-1)+1):(pop_size/n_c)*p));
             %parent (a)
@@ -169,7 +174,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             if offspring_pop(p).expected_distance == Inf
                 offspring_pop(p).expected_distance = backwardExpectedDistance([0 offspring_pop(p).tour], instance);
             end
-            offspring_dist(p) = pop(p).expected_distance;
+            
         end
 
         % Local search
@@ -192,7 +197,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         new_pop_size = pop_size;%pending
         if new_pop_size > pop_size
             %resize pop and offspring
-        end    
+        end
         pop_size = new_pop_size;
         %new population:
         for p = 1: offspring_counter
