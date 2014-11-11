@@ -84,8 +84,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         offspring_counter = offspring_counter+1;
         offspring_pop(offspring_counter) = Individual();
         offspring_pop(offspring_counter).policy = pi;
-        offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
-        
+        offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();        
     end
        
 
@@ -170,13 +169,13 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             offspring_pop(offspring_counter) = Individual();
             offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
         end
+        
         %asses fitness of offspring
-
         for p = 1:offspring_counter
             if offspring_pop(p).expected_distance == Inf
                 offspring_pop(p).expected_distance = backwardExpectedDistance([0 offspring_pop(p).tour], instance);
             end
-            
+            offspring_dist(p) = offspring_pop(p).expected_distance;
         end
 
         % Local search
