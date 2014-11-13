@@ -159,13 +159,17 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         end
         
         for p = 1: n_c
-            dists = total_dist( rand_pair((floor(pop_size/n_c)*(p-1)+1):ceil(pop_size/n_c)*p));
+            rnd_limit = randi(pop_size-1);
+            dists = total_dist( rand_pair( 1:rnd_limit ) );
             %parent (a)
-            [ignore,idx] = min(dists(1:ceil(length(dists)/2)));
-            idx_pa = rand_pair((pop_size/n_c)*(p-1)+idx); %index in population, i.e. pop(idx_pa)
+            [ignore,idx] = min(dists);
+            idx_pa = rand_pair(idx); %index in population, i.e. pop(idx_pa)
+
+            rnd_limit = 1 + randi(pop_size - 1);
+            dists = total_dist( rand_pair( rnd_limit : pop_size ) );
             %parent (b)
-            [ignore,idx] = min(dists(ceil(length(dists)/2) + 1:length(dists)));
-            idx_pb = rand_pair((pop_size/n_c)*(p-1)+(idx + ceil(length(dists)/2))); %index in population, i.e. pop(idx_pb)
+            [ignore,idx] = min(dists);
+            idx_pb = rand_pair(rnd_limit - 1 + idx); %index in population, i.e. pop(idx_pb)
             offspring_counter = offspring_counter+1;
             offspring_pop(offspring_counter) = Individual();
             offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
