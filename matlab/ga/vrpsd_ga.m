@@ -62,7 +62,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     m_change = 0; %number of generation whiout significative change in fitness function
     offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
     
-    offspring_dist = zeros(1,pop_size);% expected distance of offspring
+    
     global_min = Inf;
     total_dist = zeros(1,pop_size);
     dist_history = zeros(1,num_iter);
@@ -91,6 +91,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     iter = 0;
     while ((iter < num_iter) && m >= m_change) % stopping criterion
         offspring_counter = 0;
+        offspring_dist = zeros(1,pop_size);% expected distance of offspring
         iter = iter + 1;
         fprintf('Iteracion %i\n', iter);
         % Evaluate Each Population Member (Calculate Expected Distance)
@@ -158,7 +159,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         end
         
         for p = 1: n_c
-            dists = total_dist( rand_pair(((pop_size/n_c)*(p-1)+1):(pop_size/n_c)*p));
+            dists = total_dist( rand_pair((floor(pop_size/n_c)*(p-1)+1):ceil(pop_size/n_c)*p));
             %parent (a)
             [ignore,idx] = min(dists(1:ceil(length(dists)/2)));
             idx_pa = rand_pair((pop_size/n_c)*(p-1)+idx); %index in population, i.e. pop(idx_pa)
@@ -233,14 +234,14 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             cnEpsilon = cnEpsilon + 1;
             if(cnEpsilon > num_iter*0.1)
                 showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
-                return
+                
             end
         end 
     end
         showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
     % Return Outputs
     if nargout
-        varargout{1} = opt_rte;
+        varargout{1} = global_min;
         varargout{2} = min_dist;
     end
 end
