@@ -642,3 +642,28 @@ for k=1:100000
 end
 hist(dis_pm);
 
+%% Testing parents selection to crossover
+pop_size = 5;%
+n_c = 5;%
+total_dist = rand(1,5);%
+disp(total_dist);%
+rand_pair = randperm(pop_size);%
+disp(rand_pair);%
+
+for p = 1: n_c
+    rnd_limit = randi(pop_size-1);
+    dists = total_dist( rand_pair( 1:rnd_limit ) );
+    disp(dists);%
+    %parent (a)
+    [ignore,idx] = min(dists);
+    idx_pa = rand_pair(idx); %index in population, i.e. pop(idx_pa)
+    fprintf('%i, %6.4f\n',idx_pa, ignore);
+    
+    rnd_limit = 1 + randi(pop_size - 1);
+    dists = total_dist( rand_pair( rnd_limit : pop_size ) );
+    disp(dists);%
+    %parent (b)
+    [ignore,idx] = min(dists);    
+    idx_pb = rand_pair(rnd_limit - 1 + idx); %index in population, i.e. pop(idx_pb)
+    fprintf('%i, %6.4f\n',idx_pb, ignore);
+end
