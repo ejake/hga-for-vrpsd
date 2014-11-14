@@ -60,7 +60,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     gain_relative = 0; %|f(k)-f(k-1)\f(k-1)|
     rate_change = 0;
     m_change = 0; %number of generation whiout significative change in fitness function
-    offspring_pop = Individual.empty(pop_size,0); % the size of offspring is almost the size of population
+    offspring_pop = Individual.empty(ceil(pop_size * 1.5),0); % the size of offspring is almost the 3/2 size of population
     
     
     global_min = Inf;
@@ -84,7 +84,9 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         offspring_counter = offspring_counter+1;
         offspring_pop(offspring_counter) = Individual();
         offspring_pop(offspring_counter).policy = pi;
-        offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();        
+        offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+        offspring_pop(offspring_counter).rolledout = true;
+        offspring_pop(offspring_counter).operator = 4;%rollout
     end
        
 
@@ -114,9 +116,9 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         end
         if iter > 1
             gain_relative = max((dist_history(iter-1)-min_dist)/dist_history(iter-1),0);
-            rate_change = abs((dist_history(iter-1)-min_dist)/dist_history(iter-1));
+            rate_change = (dist_history(iter-1)-min_dist)/dist_history(iter-1);
             %no significative change
-            if rate_change < epsilon
+            if abs( rate_change ) < epsilon
                 m_change = m_change + 1;
             end
         end
@@ -155,7 +157,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         if local_search
             n_c = ceil(pop_size/4 * rand() ); %maximun 1/4 population
         else
-            n_c = floor(pop_size * rand() ); %maximun 1/2 population
+            n_c = floor(pop_size * rand() ); %maximun the size of population
         end
         
         for p = 1: n_c
@@ -170,7 +172,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             %parent (b)
             [ignore,idx] = min(dists);
             idx_pb = rand_pair(rnd_limit - 1 + idx); %index in population, i.e. pop(idx_pb)
-            offspring_counter = offspring_counter+1;
+            offspring_counter = offspring_counter+1;            
             offspring_pop(offspring_counter) = Individual();
             offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
         end
@@ -200,9 +202,27 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         %Building new population
 
         %compute size of new population
-        new_pop_size = pop_size;%pending
-        if new_pop_size > pop_size
-            %resize pop and offspring
+        alpha = 0.5;
+        if n > 1
+            if rate_change > 0
+                new_pop_size = floor(min(n + rate_change*n, 1 + alpha * n));%max 2/3 pop_size, 
+            else
+                if rate_change < 0
+                    new_pop_size = ceil(min(n + rate_change*n, alpha * n));%min 1/2 pop_size
+                end
+            end
+        else
+            new_pop_size = pop_size;
+        end
+        
+        if new_pop_size > pop_size            
+            %resize pop
+            pop = [pop Individual.empty( new_pop_size - pop_size ,0)];            
+        else
+            %resize pop
+            if new_pop_size > pop_size
+                pop = pop(1:new_pop_size);
+            end
         end
         pop_size = new_pop_size;
         %new population:
