@@ -8,6 +8,7 @@ classdef Individual
         rolledout = logical(0);
         expected_distance = Inf;
         selection_probability = 1;
+        operator = 0; %0 undifined, 1 mutation, 2 crossover, 3 cyclic heuristic, 4 rolledout
     end
     
     methods
