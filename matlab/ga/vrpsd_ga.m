@@ -148,7 +148,8 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
                 offspring_counter = offspring_counter+1;
                 offspring_pop(offspring_counter) = Individual();
                 offspring_pop(offspring_counter).tour = mutation(randi([1 4],1), ...
-                    pop(rand_pair(p)).tour);            
+                    pop(rand_pair(p)).tour);  
+                offspring_pop(offspring_counter).operator = 1;
             end        
         end    
         % Genetic Algorithm Operators - Crossover
@@ -175,6 +176,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             offspring_counter = offspring_counter+1;            
             offspring_pop(offspring_counter) = Individual();
             offspring_pop(offspring_counter).tour = crossover(pop(idx_pa).tour, pop(idx_pb).tour, n);
+            offspring_pop(offspring_counter).operator = 2;
         end
         
         %asses fitness of offspring
@@ -195,6 +197,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
                 offspring_pop(offspring_counter) = Individual();
                 offspring_pop(offspring_counter).policy = pi;
                 offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+                offspring_pop(offspring_counter).operator = 4;
             end
         end
 
@@ -203,6 +206,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
 
         %compute size of new population
         alpha = 0.5;
+        new_pop_size = pop_size;
         if n > 1
             if rate_change > 0
                 new_pop_size = floor(min(n + rate_change*n, 1 + alpha * n));%max 2/3 pop_size, 
@@ -211,8 +215,6 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
                     new_pop_size = ceil(min(n + rate_change*n, alpha * n));%min 1/2 pop_size
                 end
             end
-        else
-            new_pop_size = pop_size;
         end
         
         if new_pop_size > pop_size            
@@ -238,6 +240,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
                 pop(p) = Individual();
                 pop(p).expected_distance = cyEd(i);
                 pop(p).tour = tau;
+                pop
                 tau = circshift(tau, [1,1]);
                 i = i+1;
             end
