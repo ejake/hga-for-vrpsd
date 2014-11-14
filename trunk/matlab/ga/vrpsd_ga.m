@@ -155,7 +155,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         if local_search
             n_c = ceil(pop_size/4 * rand() ); %maximun 1/4 population
         else
-            n_c = floor(pop_size/2 * rand() ); %maximun 1/2 population
+            n_c = floor(pop_size * rand() ); %maximun 1/2 population
         end
         
         for p = 1: n_c
