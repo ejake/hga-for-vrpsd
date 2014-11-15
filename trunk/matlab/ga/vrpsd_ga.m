@@ -127,12 +127,16 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         if min_dist < global_min
             global_min = min_dist;
             opt_rte = pop(index);
-            if show_prog && (iter == 1 || iter == floor(iter/4) || iter == floor(iter/2) || floor(3*iter/4) )
+            if show_prog %&& (iter == 1 || iter == floor(iter/4) || iter == floor(iter/2) || floor(3*iter/4) )
+                sh_pop = zeros(pop_size,n);
+                for i = 1:pop_size
+                    sh_pop(i,:) = pop(i).tour;
+                end
                 % Plot the Best Route
                 figure(pfig);
                 subplot(1,4,count_subplot);
                 % imagesc(dmat(opt_rte,opt_rte))
-                imagesc(pop);            
+                imagesc(sh_pop);            
                 title(sprintf('Total Distance = %1.4f, Iteration = %d',min_dist,iter));
                 count_subplot = count_subplot+1;
             end
@@ -202,12 +206,18 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         end
 
         %selection
+        if offspring_counter == 0 %if offspring is empty
+            [ignore,idx] = min(total_dist);
+            offspring_counter = offspring_counter + 1;
+            offspring_pop(offspring_counter) = pop(idx);
+        end
+        
         %Building new population
 
         %compute size of new population
         alpha = 0.5;
         new_pop_size = pop_size;
-        if n > 1
+        if n > 1%Apply to instance with more than 1 vertex
             if rate_change > 0
                 new_pop_size = floor(min(n + rate_change*n, 1 + alpha * n));%max 2/3 pop_size, 
             else
@@ -233,10 +243,11 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         end
         %complete new population with cyEd of offspring
         %Review: offspring_pop(idx).tour is reapeated in this process
+        fprintf('iteration %i, size pop %i\n',iter, pop_size);
         if local_search
             i = 1;
             tau = offspring_pop(idx).tour;
-            for p = offspring_counter+1: min(pop_size,instance.n)
+            for p = offspring_counter+1: pop_size
                 pop(p) = Individual();
                 pop(p).expected_distance = cyEd(i);
                 pop(p).tour = tau;
@@ -249,7 +260,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             [ignore,idx] = min(offspring_dist(1:offspring_counter));
             i = 1;
             tau = offspring_pop(idx).tour;
-            for p = offspring_counter+1: min(pop_size,instance.n)
+            for p = offspring_counter+1: pop_size
                 pop(p) = Individual();                
                 pop(p).tour = tau;
                 tau = circshift(tau, [1,1]);
@@ -268,8 +279,8 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
     % Return Outputs
     if nargout
-        varargout{1} = global_min;
-        varargout{2} = min_dist;
+        varargout{1} = opt_rte;
+        varargout{2} = global_min;
     end
 end
 
