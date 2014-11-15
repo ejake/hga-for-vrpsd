@@ -624,7 +624,10 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 % GA implementation combining RA
 % (7/4/2014)
 
-[pi_ga ed_ga] = vrpsd_ga(instance, instance.n, 3, 0.01, 2, 0.5, 0.25, 0, 0);
+%for i=1:10
+    [pi_ga ed_ga] = vrpsd_ga(instance, instance.n, 10, 0.01, 10, 0.5, 0.25, 1, 0);
+    disp(ed_ga);
+%end
 
 %% Testing mutation
 %distribution of number of individuals mutated
