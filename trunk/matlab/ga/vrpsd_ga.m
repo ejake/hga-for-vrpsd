@@ -18,21 +18,11 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
 %     OPT_POL (integer array) is the best policy found by the algorithm
 %     MIN_EXP (scalar float) is the cost of the best policy
 %
-% Example:
-%     n = 50;
-%     xy = 10*rand(n,2);
-%     a = meshgrid(1:n);
-%     dmat = reshape(sqrt(sum((xy(a,:)-xy(a',:)).^2,2)),n,n);
-%     pop_size = 60;
-%     num_iter = 1e4;
-%     show_prog = 1;
-%     show_res = 1;
-%     [opt_rte,min_dist] = tsp_ga(xy,dmat,pop_size,num_iter,show_prog,show_res);
 %
 % Author: Andres Jaque
 % Email: rajaquep@gmail.com
 % Release: 1.0
-% Release Date: 3/6/08
+% Release Date: 11/14/14
 
 
     % Verify Inputs
@@ -52,7 +42,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     if epsilon <= 0
         epsilon = 0.001;
     end
-    cnEpsilon = 0;
+%    cnEpsilon = 0;
 
     local_search = false;
     
@@ -95,7 +85,6 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         offspring_counter = 0;
         offspring_dist = zeros(1,pop_size);% expected distance of offspring
         iter = iter + 1;
-        fprintf('Iteracion %i\n', iter);
         % Evaluate Each Population Member (Calculate Expected Distance)
         for p = 1:pop_size
             if pop(p).expected_distance == Inf
@@ -117,9 +106,11 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         if iter > 1
             gain_relative = max((dist_history(iter-1)-min_dist)/dist_history(iter-1),0);
             rate_change = (dist_history(iter-1)-min_dist)/dist_history(iter-1);
-            %no significative change
+            %no significative change (consecutive)
             if abs( rate_change ) < epsilon
                 m_change = m_change + 1;
+            else
+                m_change = 0;
             end
         end
         
@@ -207,7 +198,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
 
         %selection
         if offspring_counter == 0 %if offspring is empty
-            [ignore,idx] = min(total_dist);
+            [ignore,idx] = min(total_dist(1:pop_size));
             offspring_counter = offspring_counter + 1;
             offspring_pop(offspring_counter) = pop(idx);
         end
@@ -219,7 +210,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         new_pop_size = pop_size;
         if n > 1%Apply to instance with more than 1 vertex
             if rate_change > 0
-                new_pop_size = floor(min(n + rate_change*n, 1 + alpha * n));%max 2/3 pop_size, 
+                new_pop_size = floor(max(n + rate_change*n, 1 + alpha * n));%max 2/3 pop_size, 
             else
                 if rate_change < 0
                     new_pop_size = ceil(min(n + rate_change*n, alpha * n));%min 1/2 pop_size
@@ -232,7 +223,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             pop = [pop Individual.empty( new_pop_size - pop_size ,0)];            
         else
             %resize pop
-            if new_pop_size > pop_size
+            if new_pop_size < pop_size
                 pop = pop(1:new_pop_size);
             end
         end
@@ -268,15 +259,18 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             end
         end
 
-        if(gain < epsilon)
-            cnEpsilon = cnEpsilon + 1;
-            if(cnEpsilon > num_iter*0.1)
-                showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
-                
-            end
-        end 
+%        if(gain < epsilon)
+%            cnEpsilon = cnEpsilon + 1;
+%            if(cnEpsilon > num_iter*0.1)
+%                showResults(instance, opt_rte, min_dist, num_iter, pop, dist_history);
+%                
+%            end
+%        end 
     end
-        showResults(show_res,instance, opt_rte, min_dist, num_iter, pop, dist_history);
+    
+    if show_res
+        showResults(instance, opt_rte, global_min, iter, pop, dist_history);
+    end
     % Return Outputs
     if nargout
         varargout{1} = opt_rte;
@@ -284,30 +278,33 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     end
 end
 
-function showResults(show_res,instance, opt_rte, min_dist, num_iter,pop, dist_history)
-    if show_res
-        xy = zeros(instance.n+1,2);
-        for i=1:instance.n
-            xy(i+1,:) = instance.Cust(i).location;
-        end
-        % Plots the GA Results
-        figure('Name','TSPGA','Numbertitle','off');
-        subplot(2,2,1);
-        plot(xy(:,1),xy(:,2),'k.');
-        title('City Locations');
-        subplot(2,2,2);
-        %imagesc(instance.d);
-        %title('Distance Matrix');
-        imagesc(pop);
-        title('Population');
-        subplot(2,2,3);        
-        rte = [1 opt_rte+1 1];
-        plot(xy(rte,1),xy(rte,2),'r.-');
-        title(sprintf('Total Distance = %1.4f',min_dist));
-        subplot(2,2,4);
-        plot(dist_history,'b','LineWidth',2);
-        title('Best Solution History');
-        set(gca,'XLim',[0 num_iter+1],'YLim',[0 1.1*max([1 dist_history])]);
+function showResults(instance, opt_rte, min_dist, num_iter,pop, dist_history)    
+    xy = zeros(instance.n+1,2);
+    for i=1:instance.n
+        xy(i+1,:) = instance.Cust(i).location;
     end
+    %Plots the GA Results
+    figure('Name','VRPSDGA','Numbertitle','off');
+    subplot(2,2,1);
+    plot(xy(:,1),xy(:,2),'k.');
+    title('Customer Locations');
+    subplot(2,2,2);
+    %imagesc(instance.d);
+    %title('Distance Matrix');
+    sh_pop = zeros(length(pop),instance.n);
+    for i = 1:length(pop)
+        sh_pop(i,:) = pop(i).tour;
+    end
+    imagesc(sh_pop);
+    colorbar;
+    title('Population');
+    subplot(2,2,3);        
+    rte = [1 opt_rte.tour+1 1];
+    plot(xy(rte,1),xy(rte,2),'r.-');
+    title(sprintf('Expected Distance = %1.4f',min_dist));
+    subplot(2,2,4);
+    plot(dist_history(1:num_iter),'b','LineWidth',2);
+    title('Best Solution History');
+    %set(gca,'XLim',[0 num_iter+1],'YLim',[0 1.1*max([1 dist_history])]);    
 
 end
