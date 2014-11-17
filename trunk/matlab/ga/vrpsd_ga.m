@@ -56,6 +56,10 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     global_min = Inf;
     total_dist = zeros(1,pop_size);
     dist_history = zeros(1,num_iter);
+    if show_res
+        dist_lenpop = zeros(1,num_iter);
+        dist_mean = zeros(1,num_iter);
+    end
 
     if show_prog
         pfig = figure('Name','Current Best Solution','Numbertitle','off');
@@ -96,6 +100,9 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         % Find the Best Route in the Population
         [min_dist,index] = min(total_dist);
         dist_history(iter) = min_dist;
+        if show_res
+            dist_mean(iter) = mean(total_dist);
+        end
         
         %fitness gain regarded to global min
         if global_min == Inf
@@ -184,15 +191,16 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
 
         % Local search
         if local_search
-            % Rollout best tour in offspring
+            % Rollout best tour in offspring and place as first
             [ignore,idx] = min(offspring_dist(1:offspring_counter));
             if offspring_pop(idx).rolledout == false
                 [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
                 offspring_counter = offspring_counter + 1;
                 offspring_pop(offspring_counter) = Individual();
-                offspring_pop(offspring_counter).policy = pi;
-                offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
-                offspring_pop(offspring_counter).operator = 4;
+                offspring_pop(offspring_counter) = offspring_pop(1);                
+                offspring_pop(1).policy = pi;
+                offspring_pop(1) = offspring_pop(offspring_counter).setTourOfPolicy();
+                offspring_pop(1).operator = 4;
             end
         end
 
@@ -206,35 +214,35 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         %Building new population
 
         %compute size of new population
-        alpha = 0.5;
+        
         new_pop_size = pop_size;
         if n > 1%Apply to instance with more than 1 vertex
             if rate_change > 0
-                new_pop_size = floor(max(n + rate_change*n, 1 + alpha * n));%max 2/3 pop_size, 
+                new_pop_size = floor(min(n * (1 + alpha), (1 + alpha) * pop_size));%max 2/3 pop_size, alpha = 0.5;
             else
                 if rate_change < 0
-                    new_pop_size = ceil(min(n + rate_change*n, alpha * n));%min 1/2 pop_size
+                    new_pop_size = ceil(max(n * alpha, alpha * pop_size));%min 1/2 pop_size, alpha = 0.5;
                 end
             end
         end
         
-        if new_pop_size > pop_size            
+%        if new_pop_size > pop_size            
             %resize pop
-            pop = [pop Individual.empty( new_pop_size - pop_size ,0)];            
-        else
+%            pop = [pop Individual.empty( new_pop_size - pop_size ,0)];            
+%        else
             %resize pop
             if new_pop_size < pop_size
                 pop = pop(1:new_pop_size);
             end
-        end
+%        end
         pop_size = new_pop_size;
         %new population:
-        for p = 1: offspring_counter
+        for p = 1: min(offspring_counter, pop_size)
             pop(p) = offspring_pop(p);
         end
         %complete new population with cyEd of offspring
         %Review: offspring_pop(idx).tour is reapeated in this process
-        fprintf('iteration %i, size pop %i\n',iter, pop_size);
+        
         if local_search
             i = 1;
             tau = offspring_pop(idx).tour;
@@ -258,6 +266,10 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
                 i = i+1;
             end
         end
+        if show_res
+            dist_lenpop(iter) = length(pop);
+        end
+        %fprintf('iteration %i, size pop %i, length pop %i\n',iter, pop_size, length(pop));
 
 %        if(gain < epsilon)
 %            cnEpsilon = cnEpsilon + 1;
@@ -269,26 +281,29 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     end
     
     if show_res
-        showResults(instance, opt_rte, global_min, iter, pop, dist_history);
+        fig = showResults(instance, opt_rte, global_min, iter, pop, dist_history, dist_mean, dist_lenpop);
     end
     % Return Outputs
     if nargout
         varargout{1} = opt_rte;
         varargout{2} = global_min;
+        if show_res
+            varargout{3} = fig;
+        end
     end
 end
 
-function showResults(instance, opt_rte, min_dist, num_iter,pop, dist_history)    
+function f = showResults(instance, opt_rte, min_dist, num_iter,pop, dist_history, dist_mean, dist_lenpop)    
     xy = zeros(instance.n+1,2);
     for i=1:instance.n
         xy(i+1,:) = instance.Cust(i).location;
     end
     %Plots the GA Results
-    figure('Name','VRPSDGA','Numbertitle','off');
-    subplot(2,2,1);
+    f = figure('Name','VRPSDGA','Numbertitle','off');
+    subplot(2,3,1);
     plot(xy(:,1),xy(:,2),'k.');
     title('Customer Locations');
-    subplot(2,2,2);
+    subplot(2,3,2);
     %imagesc(instance.d);
     %title('Distance Matrix');
     sh_pop = zeros(length(pop),instance.n);
@@ -298,13 +313,18 @@ function showResults(instance, opt_rte, min_dist, num_iter,pop, dist_history)
     imagesc(sh_pop);
     colorbar;
     title('Population');
-    subplot(2,2,3);        
+    subplot(2,3,3);        
     rte = [1 opt_rte.tour+1 1];
     plot(xy(rte,1),xy(rte,2),'r.-');
     title(sprintf('Expected Distance = %1.4f',min_dist));
-    subplot(2,2,4);
+    subplot(2,3,4);
     plot(dist_history(1:num_iter),'b','LineWidth',2);
     title('Best Solution History');
-    %set(gca,'XLim',[0 num_iter+1],'YLim',[0 1.1*max([1 dist_history])]);    
-
+    %set(gca,'XLim',[0 num_iter+1],'YLim',[min([1 dist_history]) 1.1*max([1 dist_history])]);    
+    subplot(2,3,5);
+    plot(dist_mean(1:num_iter),'y','LineWidth',2);
+    title('Mean Solution History');
+    subplot(2,3,6);
+    plot(dist_lenpop(1:num_iter),'g','LineWidth',2);
+    title('Size Population History');    
 end

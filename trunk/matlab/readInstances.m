@@ -333,13 +333,13 @@ fclose(oFile);
 clear all;
 % -- Create output file
 %outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
-outputPath = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Outcomes/';
-outputFile = 'ra_outcome.csv';
+outputPath = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/';
+outputFile = 'ga_regular_20141115.csv';
 outputFullPath = [outputPath outputFile];
-oFile = fopen(outputFullPath, 'w');
+oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
-fprintf(oFile,'Results GA (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
-fprintf(oFile,'instance;n;time;tour;expected_distance\r\n');
+fprintf(oFile,'Results GA - regular (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
+fprintf(oFile,'instance;n;time;tour;expected_distance;pop_size;num_iter;epsilon;m_iter_without_change;prob_mutation;alpha\r\n');
 %fprintf(oFile, '%10.2f; %i; %i; %10.2f; %6.6f; %6.6f; %i; %6.6f; %i \r\n',timeSpent,policy_m,policy_a,timeExSpent,expectd,simCost0, simTour0, simCost1, simTour1);
     
 % ---
@@ -348,11 +348,12 @@ fprintf(oFile,'instance;n;time;tour;expected_distance\r\n');
 %path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
 %path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
 %Linux:
-path_wildchar = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/*.dat';
-path = '/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/';
+path_wildchar = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/*.dat';
+path = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/';
 listing = dir(path_wildchar);
 for i=1:length(listing)
     % -- Read instance file
+    disp(listing(i).name);
     path_file = [path listing(i).name];
     fid=fopen(path_file, 'r');
     fn = str2num(fgetl(fid));
@@ -375,27 +376,42 @@ for i=1:length(listing)
     %load instance object
     instance = InstanceVrpsd(n, f, DD, LL);
     % ---
-    % -- Genetic algorithm
-    pop_size = 
+    % -- Genetic algorithm    
     tic; % start timer
-    [optRoute, expectd] = vrpsd_ga(instance, 10, 10, 1, 1);
+    
+    pop_size = instance.n;
+    num_iter = 60;
+    epsilon = 0.01;
+    m_without_change = 15;
+    prob_mutation = 0.1;
+    alpha = 0.5;
+    [pi_ga ed_ga fig] = vrpsd_ga(instance, pop_size, num_iter, epsilon, m_without_change, prob_mutation, alpha, 0, 1);
+    
     timeSpent = toc; % stop timer
     % ---
     % -- Prepare outcomes data
-    tour = [0 optRoute 0];
+    tour = [0 pi_ga.tour 0];
     
     % ---
     % -- Write results in a output file    
     fprintf(oFile, '%s;',listing(i).name);
     fprintf(oFile, ' %i;',instance.n);
     fprintf(oFile, '%10.2f;',timeSpent);
-    for k=1: length(optRoute)
+    for k=1: length(tour)
         fprintf(oFile, ' %i',tour(k));
     end
     fprintf(oFile, ';');
-    fprintf(oFile, ' %6.6f',expectd);
+    fprintf(oFile, ' %6.6f',ed_ga);
+    fprintf(oFile, ' %i',pop_size);
+    fprintf(oFile, ' %i',num_iter);
+    fprintf(oFile, ' %6.6f',epsilon);
+    fprintf(oFile, ' %i',m_without_change);
+    fprintf(oFile, ' %6.6f',prob_mutation);
+    fprintf(oFile, ' %6.6f',alpha);
     fprintf(oFile,'\r\n');
     % ---
+    hgexport(fig,['/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/ga/regular/' listing(i).name '.eps']);
+    close(fig);
 end
 % -- Close outputFile
 fclose(oFile);
@@ -626,8 +642,12 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 % (7/4/2014)
 
 %for i=1:10
-    [pi_ga ed_ga] = vrpsd_ga(instance, instance.n, 150, 0.01, 50, 0.5, 0.25, 0, 1);
+    [pi_ga ed_ga fig] = vrpsd_ga(instance, instance.n, 60, 0.01, 20, 0.1, 0.5, 0, 1);
     disp(ed_ga);
+    if true
+        hgexport(fig,'/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/ga/regular/test.eps');
+        close(fig);
+    end    
 %end
 
 %% Testing mutation
