@@ -407,7 +407,8 @@ clear all;
 %Windows:
 %fid=fopen('D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\i_5r1.dat', 'rt');
 %Linux:
-fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
+%fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
+fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/i_5r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_5r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_8r1.dat', 'rt');
@@ -625,7 +626,7 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 % (7/4/2014)
 
 %for i=1:10
-    [pi_ga ed_ga] = vrpsd_ga(instance, instance.n, 10, 0.01, 10, 0.5, 0.25, 1, 0);
+    [pi_ga ed_ga] = vrpsd_ga(instance, instance.n, 150, 0.01, 50, 0.5, 0.25, 0, 1);
     disp(ed_ga);
 %end
 
