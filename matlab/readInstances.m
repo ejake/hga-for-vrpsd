@@ -338,7 +338,7 @@ outputFile = 'ga_regular_20141115.csv';
 outputFullPath = [outputPath outputFile];
 oFile = fopen(outputFullPath, 'a');
 currentTime = clock;
-fprintf(oFile,'Results GA - regular (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
+fprintf(oFile,'Results GA - m (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
 fprintf(oFile,'instance;n;time;tour;expected_distance;pop_size;num_iter;epsilon;m_iter_without_change;prob_mutation;alpha\r\n');
 %fprintf(oFile, '%10.2f; %i; %i; %10.2f; %6.6f; %6.6f; %i; %6.6f; %i \r\n',timeSpent,policy_m,policy_a,timeExSpent,expectd,simCost0, simTour0, simCost1, simTour1);
     
@@ -411,6 +411,95 @@ for i=1:length(listing)
     fprintf(oFile,'\r\n');
     % ---
     hgexport(fig,['/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/ga/regular/' listing(i).name '.eps']);
+    close(fig);
+end
+% -- Close outputFile
+fclose(oFile);
+% ---
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Read all files an run GA for each one
+clear all;
+% -- Create output file
+%outputPath = '/home/undavid/Documents/MATLAB/VRPSD/outcomes/';
+outputPath = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/';
+outputFile = 'ga_memetic_20141119.csv';
+outputFullPath = [outputPath outputFile];
+oFile = fopen(outputFullPath, 'a');
+currentTime = clock;
+fprintf(oFile,'Results GA - memetic (%u-%u-%u, %u:%u):\n',currentTime(3), currentTime(2), currentTime(1), currentTime(4), currentTime(5));
+fprintf(oFile,'instance;n;time;tour;expected_distance;pop_size;num_iter;epsilon;m_iter_without_change;prob_mutation;alpha\r\n');
+%fprintf(oFile, '%10.2f; %i; %i; %10.2f; %6.6f; %6.6f; %i; %6.6f; %i \r\n',timeSpent,policy_m,policy_a,timeExSpent,expectd,simCost0, simTour0, simCost1, simTour1);
+    
+% ---
+% -- Specify location of input data (instances) 
+%Windows:
+%path_wildchar = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\*.dat';
+%path = 'D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\';
+%Linux:
+path_wildchar = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/*.dat';
+path = '/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/';
+listing = dir(path_wildchar);
+for i=1:length(listing)
+    % -- Read instance file
+    disp(listing(i).name);
+    path_file = [path listing(i).name];
+    fid=fopen(path_file, 'r');
+    fn = str2num(fgetl(fid));
+    data = [];
+    for j=1:fn
+        txt = fgetl(fid);
+        data = [data ;str2num(txt)];
+    end
+    fclose(fid);
+    % ---
+    % -- Initialize instance values
+    %Number of customers
+    n = fn;
+    %Demand Probability Distribution for each customer
+    DD=[data(:,4) data(:,5)];
+    %Location for each customers
+    LL=[data(:,2) data(:,3)];
+    %Factor for Q
+    f=1;
+    %load instance object
+    instance = InstanceVrpsd(n, f, DD, LL);
+    % ---
+    % -- Genetic algorithm    
+    tic; % start timer
+    
+    pop_size = instance.n;
+    num_iter = 60;
+    epsilon = 0.01;
+    m_without_change = 15;
+    prob_mutation = 0.1;
+    alpha = 0.5;
+    [pi_ga ed_ga fig] = vrpsd_ga(instance, pop_size, num_iter, epsilon, m_without_change, prob_mutation, alpha, 1,0, 1);
+    
+    timeSpent = toc; % stop timer
+    % ---
+    % -- Prepare outcomes data
+    tour = [0 pi_ga.tour 0];
+    
+    % ---
+    % -- Write results in a output file    
+    fprintf(oFile, '%s;',listing(i).name);
+    fprintf(oFile, ' %i;',instance.n);
+    fprintf(oFile, '%10.2f;',timeSpent);
+    for k=1: length(tour)
+        fprintf(oFile, ' %i',tour(k));
+    end
+    fprintf(oFile, ';');
+    fprintf(oFile, ' %6.6f',ed_ga);
+    fprintf(oFile, ' %i',pop_size);
+    fprintf(oFile, ' %i',num_iter);
+    fprintf(oFile, ' %6.6f',epsilon);
+    fprintf(oFile, ' %i',m_without_change);
+    fprintf(oFile, ' %6.6f',prob_mutation);
+    fprintf(oFile, ' %6.6f',alpha);
+    fprintf(oFile,'\r\n');
+    % ---
+    hgexport(fig,['/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/ga/memetic/' listing(i).name '.eps']);
     close(fig);
 end
 % -- Close outputFile
@@ -622,7 +711,14 @@ tau_l = [l:instance.n 1:l-1];
 %tau_l = [2 3 5 1 4];
 tau = zeros(1,instance.n);
 
+for j=1:20
+for l=1:5
+    l = 1;
+tau_l = [l:instance.n 1:l-1];
+
 pi = rollout (instance, State(instance.n, instance.Q), tau_l);
+end
+end
 
 fprintf('pi = (');
 for i=1:length(pi)
@@ -642,7 +738,7 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 % (7/4/2014)
 
 %for i=1:10
-    [pi_ga ed_ga fig] = vrpsd_ga(instance, instance.n, 60, 0.01, 20, 0.1, 0.5, 0, 0, 1);
+    [pi_ga ed_ga fig] = vrpsd_ga(instance, instance.n, 60, 0.01, 20, 0.1, 0.5, 1, 0, 1);
     disp(ed_ga);
     if true
         hgexport(fig,'/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/ga/memetic/test.eps');

@@ -67,6 +67,8 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         count_subplot =1;
     end
 
+    offspring_counter = 0;
+    offspring_dist = zeros(1,pop_size);% expected distance of offspring
     if local_search
         %Apply RA to a member of population
         [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), pop(1).tour);
@@ -76,7 +78,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             pop(i).rolledout = true;
         end
         %Add to offspring policy rolled out
-        offspring_counter = offspring_counter+1;
+        offspring_counter = offspring_counter + 1;        
         offspring_pop(offspring_counter) = Individual();
         offspring_pop(offspring_counter).policy = pi;
         offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
@@ -87,8 +89,10 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
 
     iter = 0;
     while ((iter < num_iter) && m >= m_change) % stopping criterion
-        offspring_counter = 0;
-        offspring_dist = zeros(1,pop_size);% expected distance of offspring
+        if iter > 0
+            offspring_counter = 0;
+            offspring_dist = zeros(1,pop_size);% expected distance of offspring
+        end
         iter = iter + 1;
         % Evaluate Each Population Member (Calculate Expected Distance)
         for p = 1:pop_size
@@ -195,13 +199,15 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             % Rollout best tour in offspring and place as first
             [ignore,idx] = min(offspring_dist(1:offspring_counter));
             if offspring_pop(idx).rolledout == false
+                fprintf('iteration %i, indx %i, tour %s\n', iter, idx, int2str(offspring_pop(idx).tour));
                 [pi cyEd]  = rollout (instance, State(instance.n, instance.Q), offspring_pop(idx).tour);
                 offspring_counter = offspring_counter + 1;
-                offspring_pop(offspring_counter) = Individual();
-                offspring_pop(offspring_counter) = offspring_pop(1);                
-                offspring_pop(1).policy = pi;
-                offspring_pop(1) = offspring_pop(offspring_counter).setTourOfPolicy();
-                offspring_pop(1).operator = 4;
+                offspring_pop(offspring_counter) = Individual();                
+                offspring_pop(offspring_counter).policy = pi;
+                offspring_pop(offspring_counter) = offspring_pop(offspring_counter).setTourOfPolicy();
+                offspring_pop(offspring_counter).operator = 4;                
+                offspring_pop(offspring_counter).expected_distance = backwardExpectedDistance([0 offspring_pop(offspring_counter).tour], instance);
+                offspring_dist(offspring_counter) = offspring_pop(offspring_counter).expected_distance;
             end
         end
 
@@ -251,7 +257,6 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
                 pop(p) = Individual();
                 pop(p).expected_distance = cyEd(i);
                 pop(p).tour = tau;
-                pop
                 tau = circshift(tau, [1,1]);
                 i = i+1;
             end
