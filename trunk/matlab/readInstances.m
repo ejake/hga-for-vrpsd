@@ -385,7 +385,7 @@ for i=1:length(listing)
     m_without_change = 15;
     prob_mutation = 0.1;
     alpha = 0.5;
-    [pi_ga ed_ga fig] = vrpsd_ga(instance, pop_size, num_iter, epsilon, m_without_change, prob_mutation, alpha, 0, 1);
+    [pi_ga ed_ga fig] = vrpsd_ga(instance, pop_size, num_iter, epsilon, m_without_change, prob_mutation, alpha, 0,0, 1);
     
     timeSpent = toc; % stop timer
     % ---
@@ -423,8 +423,8 @@ clear all;
 %Windows:
 %fid=fopen('D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\i_5r1.dat', 'rt');
 %Linux:
-%fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
-fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/i_5r1.dat', 'rt');
+fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
+%fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/i_5r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_5r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_8r1.dat', 'rt');
@@ -642,10 +642,10 @@ fprintf('Backward Expected distance pi tour: %6.4f (%6.4f sec)\n', bed, timeSpen
 % (7/4/2014)
 
 %for i=1:10
-    [pi_ga ed_ga fig] = vrpsd_ga(instance, instance.n, 60, 0.01, 20, 0.1, 0.5, 0, 1);
+    [pi_ga ed_ga fig] = vrpsd_ga(instance, instance.n, 60, 0.01, 20, 0.1, 0.5, 0, 0, 1);
     disp(ed_ga);
     if true
-        hgexport(fig,'/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/ga/regular/test.eps');
+        hgexport(fig,'/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Outcomes/ga/memetic/test.eps');
         close(fig);
     end    
 %end

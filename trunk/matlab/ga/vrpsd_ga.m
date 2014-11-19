@@ -1,4 +1,4 @@
-function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alpha, show_prog,show_res)
+function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alpha, local_search,show_prog,show_res)
 %VRPSD_GA Vehilce Routing Problem Whit Stochastic Demands (VRPSD) Genetic Algorithm (GA)
 %   Finds a (near) optimal solution to the VRPSD by setting up a GA to search
 %   for the shortest route (least expected distance for the vehicle to travel to
@@ -44,7 +44,8 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
     end
 %    cnEpsilon = 0;
 
-    local_search = false;
+%    local_search = false;
+    local_search = logical(local_search(1));
     
     gain = Inf;
     gain_relative = 0; %|f(k)-f(k-1)\f(k-1)|
