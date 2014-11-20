@@ -711,13 +711,13 @@ tau_l = [l:instance.n 1:l-1];
 %tau_l = [2 3 5 1 4];
 tau = zeros(1,instance.n);
 
-%for j=1:10
+for j=1:10
 %for l=1:5
 tau_l = [l:instance.n 1:l-1];
 disp(tau_l);
 pi = rollout (instance, State(instance.n, instance.Q), tau_l);
 %end
-%end
+end
 
 fprintf('pi = (');
 for i=1:length(pi)

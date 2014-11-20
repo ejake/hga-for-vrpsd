@@ -51,7 +51,7 @@ function [pi cyEd]  = rollout( instance, state, tau )
                 mina = a - 1;
                 min_tau = tau;
             end
-            fprintf('tour evaluated [ %s ](Expected distance since %i : %6.4f )\n', num2str(tau), tau(i), edl);
+            %fprintf('tour evaluated [ %s ](Expected distance since %i : %6.4f )\n', num2str(tau), tau(i), edl);
             tau = [tau(1:i) circshift(tau(i+1:instance.n), [1,1])]; % cyclic heuristic applied to tau subsequence
         end
         pi = [pi Control(minl, mina)];
