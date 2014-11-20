@@ -512,8 +512,8 @@ clear all;
 %Windows:
 %fid=fopen('D:\Documents\Seminario de Investigacion\VRP\Experiments\Instances\Novoa\data_thesis\i_5r1.dat', 'rt');
 %Linux:
-fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
-%fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/i_5r1.dat', 'rt');
+%fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
+fid=fopen('/media/andres/DATA/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/small/i_20r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/dummy_n5.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_5r1.dat', 'rt');
 %fid=fopen('/media/DATA_/Documents/Seminario de Investigacion/VRP/Experiments/Instances/Novoa/data_thesis/i_8r1.dat', 'rt');
