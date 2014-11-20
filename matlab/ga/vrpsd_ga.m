@@ -255,6 +255,7 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
             tau = offspring_pop(idx).tour;
             if (pop_size - offspring_counter) > n
                 lim = offspring_counter + n;
+                pop_size = lim;
             else
                 lim = pop_size;
             end
