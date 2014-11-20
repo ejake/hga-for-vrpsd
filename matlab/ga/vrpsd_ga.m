@@ -253,7 +253,12 @@ function varargout = vrpsd_ga(instance, pop_size, num_iter, epsilon, m, p_m, alp
         if local_search
             i = 1;
             tau = offspring_pop(idx).tour;
-            for p = offspring_counter+1: pop_size
+            if (pop_size - offspring_counter) > n
+                lim = offspring_counter + n;
+            else
+                lim = pop_size;
+            end
+            for p = offspring_counter+1: lim
                 pop(p) = Individual();
                 pop(p).expected_distance = cyEd(i);
                 pop(p).tour = tau;
